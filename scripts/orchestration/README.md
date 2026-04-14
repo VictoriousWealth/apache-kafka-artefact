@@ -22,8 +22,8 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 6. `deploy_plaintext_cluster.sh`
    Run the full plaintext deployment flow with step checkpoints so interrupted runs can be resumed
 
-7. `run_plaintext_producer_baseline.sh`
-   Execute a scenario-driven remote plaintext producer performance run from the benchmark client and copy results back locally
+7. `run_parameter_sweep.sh`
+   Execute a baseline-plus-sweep benchmark run set from the benchmark client and copy results back locally
 
 8. `parse_producer_perf_results.sh`
    Convert raw `producer-perf.log` output into a standard structured result schema
