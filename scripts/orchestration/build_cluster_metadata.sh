@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
 OUTPUT_DIR="${OUTPUT_DIR:-.orchestration}"
 INVENTORY_FILE="${INVENTORY_FILE:-${OUTPUT_DIR}/inventory.env}"
 METADATA_FILE="${METADATA_FILE:-${OUTPUT_DIR}/cluster.env}"
+TEMP_METADATA=""
+
+cleanup() {
+  if [[ -n "${TEMP_METADATA}" && -f "${TEMP_METADATA}" ]]; then
+    rm -f "${TEMP_METADATA}"
+  fi
+}
+
+trap cleanup EXIT
 
 if [[ ! -f "${INVENTORY_FILE}" ]]; then
   echo "Missing inventory file at ${INVENTORY_FILE}"
@@ -30,6 +39,7 @@ if [[ "${#BROKER_IPS[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+TEMP_METADATA="$(mktemp "${OUTPUT_DIR}/cluster.XXXXXX.env")"
 QUORUM_VOTERS=""
 for i in "${!BROKER_IPS[@]}"; do
   NODE_ID=$((i + 1))
@@ -44,6 +54,9 @@ done
 {
   echo "CONTROLLER_QUORUM_VOTERS=${QUORUM_VOTERS}"
   echo "BROKER_COUNT=${#BROKER_IPS[@]}"
-} > "${METADATA_FILE}"
+} > "${TEMP_METADATA}"
+
+mv "${TEMP_METADATA}" "${METADATA_FILE}"
+TEMP_METADATA=""
 
 echo "Cluster metadata written to ${METADATA_FILE}"
