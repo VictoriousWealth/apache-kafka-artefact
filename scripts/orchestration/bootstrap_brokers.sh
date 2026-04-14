@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
 OUTPUT_DIR="${OUTPUT_DIR:-.orchestration}"
 INVENTORY_FILE="${INVENTORY_FILE:-${OUTPUT_DIR}/inventory.env}"
@@ -8,11 +8,29 @@ METADATA_FILE="${METADATA_FILE:-${OUTPUT_DIR}/cluster.env}"
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
 REMOTE_DIR="${REMOTE_DIR:-/tmp/kafka-bootstrap}"
+SSH_OPTS=()
+TEMP_CLUSTER_ID=""
+
+cleanup() {
+  if [[ -n "${TEMP_CLUSTER_ID}" && -f "${TEMP_CLUSTER_ID}" ]]; then
+    rm -f "${TEMP_CLUSTER_ID}"
+  fi
+}
+
+on_interrupt() {
+  echo "Bootstrap interrupted. Re-running the script is safe."
+  exit 130
+}
+
+trap cleanup EXIT
+trap on_interrupt INT TERM
 
 if [[ -z "${SSH_KEY_PATH}" ]]; then
   echo "Set SSH_KEY_PATH to your private key."
   exit 1
 fi
+
+SSH_OPTS=(-i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no -o ConnectTimeout=10)
 
 if [[ ! -f "${INVENTORY_FILE}" || ! -f "${METADATA_FILE}" ]]; then
   echo "Missing inventory or metadata file."
@@ -35,36 +53,50 @@ while true; do
   INDEX=$((INDEX + 1))
 done
 
+remote_ssh() {
+  local host="$1"
+  shift
+  ssh "${SSH_OPTS[@]}" "${SSH_USER}@${host}" "$@"
+}
+
+remote_scp_to() {
+  local host="$1"
+  shift
+  scp "${SSH_OPTS[@]}" "$@" "${SSH_USER}@${host}:${REMOTE_DIR}/"
+}
+
 for i in "${!BROKER_IPS[@]}"; do
-  NODE_ID=$((i + 1))
   HOST="${BROKER_IPS[$i]}"
 
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" "mkdir -p ${REMOTE_DIR}"
-  scp -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no \
+  remote_ssh "${HOST}" "mkdir -p ${REMOTE_DIR}"
+  remote_scp_to "${HOST}" \
     deploy/kafka/bootstrap/install_kafka.sh \
     deploy/kafka/bootstrap/generate_cluster_id.sh \
     deploy/kafka/bootstrap/configure_kafka_plaintext.sh \
     deploy/kafka/bootstrap/create_systemd_service.sh \
-    deploy/kafka/config/server.properties.plaintext.template \
-    "${SSH_USER}@${HOST}:${REMOTE_DIR}/"
+    deploy/kafka/config/server.properties.plaintext.template
 
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" "sudo bash ${REMOTE_DIR}/install_kafka.sh"
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" "sudo cp ${REMOTE_DIR}/server.properties.plaintext.template /etc/kafka/server.properties.template"
+  remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/install_kafka.sh"
+  remote_ssh "${HOST}" "sudo install -m 0644 ${REMOTE_DIR}/server.properties.plaintext.template /etc/kafka/server.properties.template"
 done
 
 FIRST_BROKER="${BROKER_IPS[0]}"
-ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${FIRST_BROKER}" "sudo bash ${REMOTE_DIR}/generate_cluster_id.sh && sudo cat /etc/kafka/cluster.id" > "${OUTPUT_DIR}/cluster.id"
+TEMP_CLUSTER_ID="$(mktemp "${OUTPUT_DIR}/cluster.id.XXXXXX")"
+remote_ssh "${FIRST_BROKER}" "sudo bash ${REMOTE_DIR}/generate_cluster_id.sh >/dev/null && sudo cat /etc/kafka/cluster.id" > "${TEMP_CLUSTER_ID}"
+mv "${TEMP_CLUSTER_ID}" "${OUTPUT_DIR}/cluster.id"
+TEMP_CLUSTER_ID=""
 
 for i in "${!BROKER_IPS[@]}"; do
   NODE_ID=$((i + 1))
   HOST="${BROKER_IPS[$i]}"
 
-  scp -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${OUTPUT_DIR}/cluster.id" "${SSH_USER}@${HOST}:${REMOTE_DIR}/cluster.id"
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" "sudo cp ${REMOTE_DIR}/cluster.id /etc/kafka/cluster.id"
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" \
+  remote_scp_to "${HOST}" "${OUTPUT_DIR}/cluster.id"
+  remote_ssh "${HOST}" "sudo install -m 0644 ${REMOTE_DIR}/cluster.id /etc/kafka/cluster.id"
+  remote_ssh "${HOST}" \
     "sudo bash ${REMOTE_DIR}/configure_kafka_plaintext.sh ${NODE_ID} '${CONTROLLER_QUORUM_VOTERS}' ${HOST}"
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" "sudo bash ${REMOTE_DIR}/create_systemd_service.sh"
-  ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${HOST}" "sudo systemctl restart kafka"
+  remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/create_systemd_service.sh"
+  remote_ssh "${HOST}" "sudo systemctl restart kafka"
+  printf 'BOOTSTRAPPED=true\nNODE_ID=%s\nHOST=%s\n' "${NODE_ID}" "${HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
 done
 
 echo "Broker bootstrap complete."
