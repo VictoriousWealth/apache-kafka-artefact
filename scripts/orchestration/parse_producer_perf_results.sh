@@ -68,6 +68,8 @@ jq \
     sweep_name: .sweep_name,
     sweep_variable: .sweep_variable,
     sweep_value: .sweep_value,
+    trial_index: .trial_index,
+    trial_count: .trial_count,
     topic: .topic,
     cluster: {
       bootstrap_servers: .bootstrap_servers,
