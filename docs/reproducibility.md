@@ -22,10 +22,10 @@ Each run should capture:
 
 To reduce noise:
 
-- use the same machine or document hardware differences
-- avoid concurrent heavy workloads on the host
-- keep container resource settings stable if configured
-- document whether runs are local, VM-based, or container-based
+- use the same EC2 instance types or document hardware differences
+- avoid concurrent heavy workloads on the benchmark client or broker hosts
+- keep storage, region, and network placement stable across runs
+- document the AWS region, AMI, instance type, and EBS layout used
 
 ## Output Requirements
 
