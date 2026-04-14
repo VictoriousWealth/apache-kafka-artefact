@@ -31,6 +31,9 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 9. `aggregate_sweep_results.sh`
    Aggregate all per-run `result.json` files under a sweep into `summary.json` and `summary.csv`
 
+10. `../analysis/export_sweep_artifacts.sh`
+   Convert `summary.json` into dissertation-ready tables and SVG plots under an `export/` directory
+
 ## Requirements
 
 - `terraform`
