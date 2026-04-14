@@ -49,6 +49,8 @@ docs/
 deploy/
   kafka/
   certs/
+infrastructure/
+  terraform/
 scripts/
 config/
   scenarios/
@@ -72,7 +74,8 @@ The design package is split into:
 
 ## Immediate Next Steps
 
-1. Implement the baseline Kafka deployment in plaintext mode.
-2. Add TLS and mTLS configuration paths and certificate generation.
-3. Add benchmark workload generation and an experiment controller.
-4. Persist results as structured outputs for later analysis.
+1. Provision baseline AWS infrastructure with Terraform.
+2. Configure Kafka on EC2 instances in plaintext mode.
+3. Add TLS and mTLS configuration paths and certificate generation.
+4. Add benchmark workload generation and an experiment controller.
+5. Persist results as structured outputs for later analysis.
