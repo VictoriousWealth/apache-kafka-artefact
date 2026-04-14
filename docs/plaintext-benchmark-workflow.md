@@ -25,6 +25,7 @@ It performs:
 - result copy-back to the local repository
 - parsing into a standard `result.json` schema
 - sweep-level aggregation into `summary.json` and `summary.csv`
+- repeated trials per sweep value when configured
 
 ## Current Outputs
 
@@ -56,6 +57,8 @@ The standard result schema currently captures:
 - average and maximum latency if present in the raw Kafka output
 
 The sweep summary outputs provide a flat comparison view across all resolved runs in the sweep.
+
+If the sweep definition includes `trials`, the summary also includes grouped statistics across repeated trials for each tested sweep value.
 
 ## Scope Boundary
 
