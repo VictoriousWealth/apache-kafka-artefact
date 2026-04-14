@@ -82,6 +82,20 @@ wait_for_kafka_service() {
   return 1
 }
 
+wait_for_kafka_api() {
+  local host="$1"
+  local attempt=1
+  local remote_cmd="KAFKA_HOME=/opt/kafka_2.13-3.8.0; sudo bash -lc '\"\${KAFKA_HOME}/bin/kafka-broker-api-versions.sh\" --bootstrap-server ${host}:9092 >/dev/null 2>&1'"
+  while (( attempt <= MAX_RETRIES )); do
+    if remote_ssh "${host}" "${remote_cmd}"; then
+      return 0
+    fi
+    sleep "${RETRY_SLEEP_SECONDS}"
+    attempt=$((attempt + 1))
+  done
+  return 1
+}
+
 for i in "${!BROKER_IPS[@]}"; do
   HOST="${BROKER_IPS[$i]}"
 
@@ -117,6 +131,10 @@ for i in "${!BROKER_IPS[@]}"; do
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo systemctl restart kafka"
   if ! wait_for_kafka_service "${HOST}"; then
     log "Kafka service failed health check on ${HOST}"
+    exit 1
+  fi
+  if ! wait_for_kafka_api "${HOST}"; then
+    log "Kafka API readiness check failed on ${HOST}"
     exit 1
   fi
   printf 'BOOTSTRAPPED=true\nNODE_ID=%s\nHOST=%s\n' "${NODE_ID}" "${HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
