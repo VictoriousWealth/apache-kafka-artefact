@@ -51,8 +51,8 @@ This layer drives data through the Kafka cluster.
 
 Responsibilities:
 
-- Produce messages under controlled rates and sizes
-- Consume messages for end-to-end measurement
+- Produce synthetic messages under controlled rates and sizes
+- Consume messages for end-to-end measurement under matching synthetic workloads
 - Support configurable batching, acknowledgements, and concurrency
 
 Planned location:
@@ -164,6 +164,7 @@ This separation is necessary to keep the methodology academically defensible.
 - The baseline comparison must be the same deployment and workload under different security modes.
 - The system should prioritise automation over manual benchmark execution.
 - Every result file should include enough metadata to explain how it was produced.
+- The benchmark process should use custom synthetic workloads tailored to the research question rather than relying on external benchmark suites whose workload assumptions do not directly target the TLS/mTLS comparison.
 
 ## Initial Technical Decisions
 
