@@ -24,6 +24,7 @@ It performs:
 - local result metadata capture on the benchmark client
 - result copy-back to the local repository
 - parsing into a standard `result.json` schema
+- sweep-level aggregation into `summary.json` and `summary.csv`
 
 ## Current Outputs
 
@@ -33,6 +34,11 @@ For each run, the result directory contains:
 - `topic-create.log`
 - `metadata.json`
 - `result.json`
+
+At the sweep directory level, the framework also writes:
+
+- `summary.json`
+- `summary.csv`
 
 ## Structured Result Schema
 
@@ -48,6 +54,8 @@ The standard result schema currently captures:
 - resolved run configuration
 - throughput metrics
 - average and maximum latency if present in the raw Kafka output
+
+The sweep summary outputs provide a flat comparison view across all resolved runs in the sweep.
 
 ## Scope Boundary
 
