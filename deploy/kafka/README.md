@@ -18,6 +18,9 @@ TLS and mTLS support will be layered on top of this baseline after the plaintext
 - `bootstrap/install_kafka.sh`
   Installs Java and Kafka, creates the Kafka user, and prepares directories.
 
+- `bootstrap/install_kafka_client.sh`
+  Installs Java, Kafka CLI tooling, and result directories on the benchmark client host.
+
 - `bootstrap/generate_cluster_id.sh`
   Generates a Kafka cluster ID for KRaft storage formatting.
 
@@ -30,6 +33,8 @@ TLS and mTLS support will be layered on top of this baseline after the plaintext
 ## Plaintext Configuration Template
 
 - `config/server.properties.plaintext.template`
+- `client/plaintext-client.properties`
+- `client/run_plaintext_producer_perf.sh`
 
 This template is designed for a small three-broker KRaft cluster with:
 
@@ -44,6 +49,8 @@ This template is designed for a small three-broker KRaft cluster with:
 3. Render `server.properties` per node with the correct node ID and quorum voters.
 4. Format storage.
 5. Create the `systemd` service and start Kafka.
+6. Prepare the benchmark client with Kafka CLI tooling and client properties.
+7. Execute the initial plaintext producer performance run.
 
 ## Notes
 
