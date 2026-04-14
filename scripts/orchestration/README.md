@@ -22,6 +22,9 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 6. `deploy_plaintext_cluster.sh`
    Run the full plaintext deployment flow with step checkpoints so interrupted runs can be resumed
 
+7. `run_plaintext_producer_baseline.sh`
+   Execute the first remote plaintext producer performance run from the benchmark client and copy results back locally
+
 ## Requirements
 
 - `terraform`
@@ -45,3 +48,4 @@ The current scripts assume:
 - atomic writes for generated local state files
 - resumable checkpoints for the top-level plaintext deployment flow
 - broker service health checks after startup
+- Kafka API readiness checks after broker startup
