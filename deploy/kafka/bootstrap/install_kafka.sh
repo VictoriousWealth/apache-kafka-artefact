@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
 KAFKA_VERSION="${KAFKA_VERSION:-3.8.0}"
 SCALA_VERSION="${SCALA_VERSION:-2.13}"
@@ -10,6 +10,15 @@ KAFKA_GROUP="${KAFKA_GROUP:-kafka}"
 KAFKA_HOME="${INSTALL_DIR}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}"
 KAFKA_TGZ="kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz"
 KAFKA_URL="https://archive.apache.org/dist/kafka/${KAFKA_VERSION}/${KAFKA_TGZ}"
+TEMP_TGZ=""
+
+cleanup() {
+  if [[ -n "${TEMP_TGZ}" && -f "${TEMP_TGZ}" ]]; then
+    rm -f "${TEMP_TGZ}"
+  fi
+}
+
+trap cleanup EXIT
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Run as root."
@@ -29,10 +38,10 @@ fi
 
 cd "${INSTALL_DIR}"
 
-if [[ ! -d "${KAFKA_HOME}" ]]; then
-  wget -q "${KAFKA_URL}"
-  tar -xzf "${KAFKA_TGZ}"
-  rm -f "${KAFKA_TGZ}"
+if [[ ! -x "${KAFKA_HOME}/bin/kafka-server-start.sh" ]]; then
+  TEMP_TGZ="$(mktemp "${INSTALL_DIR}/kafka-download.XXXXXX.tgz")"
+  wget -q -O "${TEMP_TGZ}" "${KAFKA_URL}"
+  tar -xzf "${TEMP_TGZ}"
 fi
 
 mkdir -p /etc/kafka
