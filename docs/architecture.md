@@ -66,7 +66,8 @@ This is the orchestration layer and the core of the artefact.
 
 Responsibilities:
 
-- Select scenarios and parameter values
+- Load baselines and sweep definitions
+- Select parameter values for concrete run generation
 - Start the correct deployment mode
 - Run benchmark clients
 - Collect and persist measurements
@@ -86,7 +87,7 @@ Responsibilities:
 - Store run metadata
 - Store throughput and latency results
 - Store optional host metrics
-- Preserve scenario definitions alongside outputs
+- Preserve baseline and sweep definitions alongside outputs
 
 Planned location:
 
@@ -96,14 +97,15 @@ Planned location:
 
 The expected flow for a single run is:
 
-1. Load an experiment scenario from `config/scenarios/`.
-2. Load workload parameters from `config/workloads/`.
-3. Provision or restart Kafka with the selected security mode.
-4. Create or validate topics and partitions.
-5. Start producer and consumer benchmark processes.
-6. Capture benchmark metrics and run metadata.
-7. Persist results to structured files in `results/`.
-8. Reset or tear down the environment before the next run.
+1. Load a baseline from `config/baselines/`.
+2. Load a sweep definition from `config/sweeps/`.
+3. Generate one concrete run by applying a single sweep value to the baseline.
+4. Provision or restart Kafka with the resolved security mode.
+5. Create or validate topics and partitions.
+6. Start producer and consumer benchmark processes.
+7. Capture benchmark metrics and run metadata.
+8. Persist results to structured files in `results/`.
+9. Repeat for the remaining values in the sweep.
 
 ## Primary Architectural Views
 
@@ -171,4 +173,4 @@ This separation is necessary to keep the methodology academically defensible.
 - Deployment approach: `AWS EC2` provisioned with `Terraform`
 - Initial benchmark focus: throughput first, latency second
 - Initial comparison set: `plaintext`, `TLS`, `mTLS`
-- Initial methodology: one-factor-at-a-time, with a justified subset of scenario combinations reported in the dissertation
+- Initial methodology: one-factor-at-a-time parameter sweeps, with a justified subset of resolved runs reported in the dissertation
