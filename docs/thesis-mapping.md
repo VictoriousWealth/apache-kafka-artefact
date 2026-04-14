@@ -49,7 +49,7 @@ Addressed by:
 
 - throughput as the primary metric
 - multiple workload classes
-- scenario matrix with controlled comparisons
+- scenario matrix with controlled synthetic workload comparisons
 
 ### Data and Ethics Restrictions
 
