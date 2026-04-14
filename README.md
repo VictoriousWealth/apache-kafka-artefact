@@ -8,7 +8,7 @@ The artefact is defined as:
 
 ## Current Status
 
-The repository is currently in the planning and architecture stage. The dissertation draft and source material remain in the repository root, while the artefact implementation will be developed in the project structure below.
+The repository now contains the planning documents, infrastructure scaffolding, plaintext deployment flow, sweep runner, result aggregation, and export layer for the first end-to-end benchmark path. The dissertation draft and source material remain in the repository root, while the artefact implementation lives in the project structure below.
 
 ## Research Goal
 
@@ -81,3 +81,17 @@ The design package is split into:
 3. Add TLS and mTLS configuration paths and certificate generation.
 4. Add benchmark workload generation and an experiment controller.
 5. Persist results as structured outputs for later analysis.
+
+## Current Plaintext Workflow
+
+The current one-command plaintext research path is:
+
+```bash
+SSH_KEY_PATH=/path/to/key.pem scripts/run_plaintext_workflow.sh
+```
+
+To choose a different sweep:
+
+```bash
+SSH_KEY_PATH=/path/to/key.pem SWEEP_FILE=config/sweeps/target_messages_per_second.json scripts/run_plaintext_workflow.sh
+```
