@@ -17,10 +17,13 @@ The first benchmark path uses Kafka's `kafka-producer-perf-test.sh` from the ben
 
 It performs:
 
+- scenario lookup from `config/scenarios/...`
+- workload lookup from `config/workloads/...`
 - idempotent topic creation if the topic does not already exist
 - a producer throughput run against the plaintext brokers
 - local result metadata capture on the benchmark client
 - result copy-back to the local repository
+- parsing into a standard `result.json` schema
 
 ## Current Outputs
 
@@ -29,6 +32,20 @@ For each run, the result directory contains:
 - `producer-perf.log`
 - `topic-create.log`
 - `metadata.json`
+- `result.json`
+
+## Structured Result Schema
+
+The standard result schema currently captures:
+
+- `run_id`
+- `security_mode`
+- `scenario_name`
+- `workload_name`
+- cluster configuration
+- workload configuration
+- throughput metrics
+- average and maximum latency if present in the raw Kafka output
 
 ## Scope Boundary
 
