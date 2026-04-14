@@ -123,18 +123,21 @@ Kafka   Benchmarks  Results Store
 
 ### Deployment View
 
-The likely initial deployment model is container-based:
+The primary deployment model is AWS EC2 provisioned with Terraform:
 
 ```text
-Benchmark Controller Container or Host Process
-Producer Benchmark Process
-Consumer Benchmark Process
-Kafka Broker 1
-Kafka Broker 2
-Kafka Broker 3
+Terraform
+   |
+   v
+AWS VPC
+   |
+   +-- Kafka Broker EC2 1
+   +-- Kafka Broker EC2 2
+   +-- Kafka Broker EC2 3
+   +-- Benchmark Client / Controller EC2
 ```
 
-For the earliest milestone, a single-broker setup may be used to validate the framework before expanding to a multi-broker layout.
+For the earliest milestone, a single-broker setup may be used to validate the framework before expanding to a multi-broker layout. The target dissertation-grade architecture, however, is a small multi-VM Kafka deployment with fixed machine specifications.
 
 ### Data and Result Flow
 
@@ -164,7 +167,7 @@ This separation is necessary to keep the methodology academically defensible.
 
 ## Initial Technical Decisions
 
-- Deployment approach: `Docker Compose`
+- Deployment approach: `AWS EC2` provisioned with `Terraform`
 - Initial benchmark focus: throughput first, latency second
 - Initial comparison set: `plaintext`, `TLS`, `mTLS`
 - Initial methodology: one-factor-at-a-time, with a justified subset of scenario combinations reported in the dissertation
