@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
 OUTPUT_DIR="${OUTPUT_DIR:-.orchestration}"
 INVENTORY_FILE="${INVENTORY_FILE:-${OUTPUT_DIR}/inventory.env}"
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
+SSH_OPTS=(-i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no -o ConnectTimeout=10)
 
 if [[ -z "${SSH_KEY_PATH}" ]]; then
   echo "Set SSH_KEY_PATH to your private key."
@@ -25,7 +26,7 @@ if [[ -z "${BENCHMARK_CLIENT_IP:-}" ]]; then
   exit 1
 fi
 
-ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${SSH_USER}@${BENCHMARK_CLIENT_IP}" \
+ssh "${SSH_OPTS[@]}" "${SSH_USER}@${BENCHMARK_CLIENT_IP}" \
   "sudo apt-get update && sudo apt-get install -y openjdk-17-jre-headless wget tar jq"
 
 echo "Benchmark client prepared at ${BENCHMARK_CLIENT_IP}"
