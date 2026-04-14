@@ -2,13 +2,13 @@
 
 ## Goal
 
-This workflow defines the first runnable benchmark path for the artefact: a plaintext producer performance run against the EC2 Kafka cluster.
+This workflow defines the first runnable benchmark path for the artefact: a plaintext producer performance sweep against the EC2 Kafka cluster.
 
 ## Sequence
 
 1. Provision infrastructure with Terraform.
 2. Run `scripts/orchestration/deploy_plaintext_cluster.sh`.
-3. Run `scripts/orchestration/run_plaintext_producer_baseline.sh`.
+3. Run `scripts/orchestration/run_parameter_sweep.sh`.
 4. Inspect the copied results under `results/plaintext/`.
 
 ## Current Benchmark Shape
@@ -17,8 +17,8 @@ The first benchmark path uses Kafka's `kafka-producer-perf-test.sh` from the ben
 
 It performs:
 
-- scenario lookup from `config/scenarios/...`
-- workload lookup from `config/workloads/...`
+- baseline lookup from `config/baselines/...`
+- sweep lookup from `config/sweeps/...`
 - idempotent topic creation if the topic does not already exist
 - a producer throughput run against the plaintext brokers
 - local result metadata capture on the benchmark client
@@ -40,10 +40,12 @@ The standard result schema currently captures:
 
 - `run_id`
 - `security_mode`
-- `scenario_name`
-- `workload_name`
+- `baseline_name`
+- `sweep_name`
+- `sweep_variable`
+- `sweep_value`
 - cluster configuration
-- workload configuration
+- resolved run configuration
 - throughput metrics
 - average and maximum latency if present in the raw Kafka output
 
@@ -54,4 +56,4 @@ This first path measures producer-side throughput only. It is intended to valida
 - consumer-side measurement
 - latency parsing and summarisation
 - TLS and mTLS variants
-- scenario-driven automation
+- broader sweep automation
