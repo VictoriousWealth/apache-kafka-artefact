@@ -20,8 +20,8 @@ The artefact supports this through:
 The artefact supports this through:
 
 - controlled one-factor-at-a-time methodology
-- repeatable benchmark scenarios
-- explicit workload definitions
+- repeatable benchmark baselines and sweeps
+- explicit baseline and sweep definitions
 - traceable outputs and documentation
 
 ## Rule Mapping
@@ -48,8 +48,8 @@ Addressed by:
 Addressed by:
 
 - throughput as the primary metric
-- multiple workload classes
-- scenario matrix with controlled synthetic workload comparisons
+- controlled one-factor-at-a-time parameter sweeps
+- transparent baseline and sweep definitions
 
 ### Data and Ethics Restrictions
 
