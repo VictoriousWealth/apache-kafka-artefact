@@ -1,0 +1,431 @@
+Good — this is where your dissertation goes from “strong” → **top 5% / publishable**.
+
+Right now, you don’t just need a PRD…
+you need **a crystal-clear artefact definition that matches the marking rubric EXACTLY**.
+
+---
+
+# 🎯 1. What Your Artefact *ACTUALLY IS* (Final Definition)
+
+## ✅ Your artefact is:
+
+> **A controlled, reproducible Kafka benchmarking system that quantitatively evaluates the performance trade-offs introduced by TLS and mTLS under realistic, production-like workloads.**
+
+---
+
+## 🔥 In simpler terms:
+
+You are building:
+
+👉 **A scientific experiment platform for Kafka security**
+
+NOT:
+
+* a “Kafka app” ❌
+* a “demo system” ❌
+* a “random benchmark script” ❌
+
+---
+
+## 💡 The examiner should think:
+
+> “This is a well-designed experimental system that could be used in real research.”
+
+---
+
+# 🧱 2. Core Artefact Components (What it MUST contain)
+
+## 🧩 A. Kafka Environment (Realistic + Compliant)
+
+You MUST include:
+
+* Kafka brokers (≥1, ideally 2–3)
+* Topics + partitions
+* Replication (even if minimal)
+* Real configs (NOT defaults only)
+
+👉 Because rubric says: **real-world compliance**
+
+---
+
+## 🧩 B. Security Configurations (CRITICAL)
+
+You must implement:
+
+### 1. Baseline
+
+* No TLS
+
+### 2. TLS
+
+* Encryption only
+
+### 3. mTLS
+
+* Encryption + authentication
+
+---
+
+👉 Optional (for higher marks):
+
+* SASL (bonus depth)
+* ACLs (mention + maybe basic implementation)
+
+---
+
+## 🧩 C. Workload Generator (VERY IMPORTANT)
+
+This is what drives your experiments.
+
+You need:
+
+* Producer(s)
+* Consumer(s)
+
+Configurable:
+
+* message rate
+* message size
+* batching
+
+---
+
+👉 This is what enables:
+**“multiple workloads” requirement**
+
+---
+
+## 🧩 D. Benchmark Controller (YOUR REAL ARTEFACT)
+
+This is the **brain of your system**.
+
+It should:
+
+* Run experiments automatically
+* Switch configs (TLS vs mTLS)
+* Control workloads
+* Collect results
+
+---
+
+👉 THIS is what gives you:
+
+✔ Quality of Product
+✔ Complexity
+✔ Methodical design
+
+---
+
+## 🧩 E. Metrics Collection System
+
+You must measure:
+
+### REQUIRED:
+
+* ✅ Throughput (PRIMARY METRIC)
+
+### STRONGLY RECOMMENDED:
+
+* Latency
+* CPU usage
+
+---
+
+👉 Because your rules say:
+
+> **Throughput must be primary metric**
+
+---
+
+## 🧩 F. Results Output
+
+You need:
+
+* CSV / JSON logs
+* structured experiment results
+
+---
+
+👉 This supports:
+✔ evaluation
+✔ graphs
+✔ reproducibility
+
+---
+
+# ⚙️ 3. Features (What it MUST DO)
+
+## 🔹 Feature 1: Multi-Configuration Testing
+
+System must:
+
+* Run same workload on:
+
+  * no security
+  * TLS
+  * mTLS
+
+---
+
+## 🔹 Feature 2: Multiple Workloads
+
+You MUST vary:
+
+* message size
+* throughput rate
+
+Example:
+
+| Scenario | Messages/sec | Size  |
+| -------- | ------------ | ----- |
+| Low      | 1k/s         | 1KB   |
+| Medium   | 10k/s        | 10KB  |
+| High     | 50k/s        | 100KB |
+
+---
+
+## 🔹 Feature 3: Fair Comparison
+
+System must ensure:
+
+* same hardware
+* same configs
+* ONLY security changes
+
+---
+
+👉 This is HUGE for marks.
+
+---
+
+## 🔹 Feature 4: Automation
+
+You should NOT manually run tests.
+
+System should:
+
+* run all scenarios
+* log automatically
+
+---
+
+👉 This shows:
+**“precise and methodical process” (70+ requirement)**
+
+---
+
+## 🔹 Feature 5: Reproducibility
+
+You must be able to say:
+
+> “Anyone can rerun my experiments and get similar results.”
+
+---
+
+# 📦 4. Deliverables (What You Submit / Show)
+
+## 🧾 1. Source Code
+
+* Kafka setup (Docker or scripts)
+* Producers & consumers
+* Benchmark controller
+
+---
+
+## 📊 2. Experimental Results
+
+* Tables
+* Graphs
+
+Example:
+
+* Throughput vs workload
+* TLS vs mTLS comparison
+
+---
+
+## 📄 3. Methodology (in dissertation)
+
+Explain:
+
+* how system works
+* how tests are run
+* why configs chosen
+
+---
+
+## 📈 4. Evaluation Section
+
+* analyse results
+* link back to:
+
+  * queueing theory
+  * literature gap
+
+---
+
+## 📁 5. Reproducibility Evidence
+
+* configs
+* scripts
+* setup steps
+
+---
+
+# 🖥️ 5. What It Should *Look Like*
+
+Not a UI.
+
+Think:
+
+```
+/kafka-benchmark/
+│
+├── docker-compose.yml
+├── configs/
+│   ├── baseline.properties
+│   ├── tls.properties
+│   ├── mtls.properties
+│
+├── producer/
+├── consumer/
+│
+├── benchmark/
+│   ├── run_tests.sh
+│   ├── scenarios.json
+│
+├── results/
+│   ├── throughput.csv
+│   ├── latency.csv
+```
+
+---
+
+👉 Examiner sees:
+
+✔ structured
+✔ professional
+✔ reproducible
+
+---
+
+# 🧠 6. What It Should *DO* (Execution Flow)
+
+### Step 1
+
+Start Kafka cluster
+
+---
+
+### Step 2
+
+Run workload:
+
+* producers send data
+* consumers receive data
+
+---
+
+### Step 3
+
+Measure throughput
+
+---
+
+### Step 4
+
+Repeat for:
+
+* TLS
+* mTLS
+
+---
+
+### Step 5
+
+Repeat for multiple workloads
+
+---
+
+### Step 6
+
+Save results
+
+---
+
+# 🧪 7. Why This Meets Your Uni Rules PERFECTLY
+
+## ✅ Quality of Product
+
+* Complex distributed system
+* Real-world Kafka security
+* Non-trivial benchmarking
+
+---
+
+## ✅ Quality of Process
+
+* Controlled experiments
+* Multiple workloads
+* Methodical comparisons
+
+---
+
+## ✅ Benchmarking Requirements
+
+✔ Throughput as primary
+✔ Multiple scenarios
+✔ Fair comparison
+
+---
+
+## ✅ Real-world Compliance
+
+✔ TLS
+✔ mTLS
+✔ (optional ACLs/SASL)
+
+---
+
+# 🚨 8. What Will KILL Your Marks (Avoid This)
+
+❌ One workload only
+❌ No automation
+❌ No fair comparison
+❌ No explanation of configs
+❌ Just “I ran Kafka and measured stuff”
+
+---
+
+# 🏁 Final Summary (Lock This In)
+
+## Your artefact is:
+
+👉 **A reproducible Kafka benchmarking framework**
+
+## It must:
+
+✔ Compare TLS vs mTLS vs baseline
+✔ Use multiple workloads
+✔ Measure throughput
+✔ Be automated
+✔ Be realistic
+✔ Be explainable
+
+---
+
+# 🚀 If you want next
+
+I can help you:
+
+✅ Design the **exact experiments table (ready for dissertation)**
+✅ Choose **Docker vs cloud setup (important decision)**
+✅ Write your **Methodology section (70–90% level)**
+✅ Show how to **implement mTLS step-by-step**
+
+---
+
+Right now — you’re not confused anymore.
+
+You’re building a **research-grade system**.
+
