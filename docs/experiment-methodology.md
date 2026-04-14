@@ -4,6 +4,8 @@
 
 The framework is designed to support controlled measurement of the performance impact of Kafka transport security mechanisms, especially TLS and mTLS.
 
+The methodology uses custom synthetic workloads instead of a standard benchmark suite. This is because the dissertation requires direct, controlled comparison of transport security modes under a small number of justified and transparent workload classes.
+
 ## Method
 
 The artefact uses a one-factor-at-a-time methodology.
@@ -92,6 +94,8 @@ Each workload should define at minimum:
 - producer count
 - consumer count
 - batching-related settings if used
+
+These workloads are synthetic by design. They do not attempt to reproduce a single real business workload. Instead, they provide controlled traffic profiles that make it possible to isolate how Kafka security and deployment parameters affect throughput and latency.
 
 The dissertation does not need to report every possible workload combination. It should report a justified subset that is representative and manageable.
 
