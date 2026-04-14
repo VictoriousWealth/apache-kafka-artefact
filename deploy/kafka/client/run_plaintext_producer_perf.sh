@@ -14,6 +14,8 @@ BASELINE_NAME="${BASELINE_NAME:-plaintext-default}"
 SWEEP_NAME="${SWEEP_NAME:-ad-hoc-sweep}"
 SWEEP_VARIABLE="${SWEEP_VARIABLE:-none}"
 SWEEP_VALUE="${SWEEP_VALUE:-none}"
+TRIAL_INDEX="${TRIAL_INDEX:-1}"
+TRIAL_COUNT="${TRIAL_COUNT:-1}"
 SECURITY_MODE="${SECURITY_MODE:-plaintext}"
 PRODUCER_COUNT="${PRODUCER_COUNT:-1}"
 CONSUMER_COUNT="${CONSUMER_COUNT:-1}"
@@ -80,6 +82,8 @@ cat > "${TEMP_METADATA}" <<EOF
   "sweep_name": "${SWEEP_NAME}",
   "sweep_variable": "${SWEEP_VARIABLE}",
   "sweep_value": "${SWEEP_VALUE}",
+  "trial_index": ${TRIAL_INDEX},
+  "trial_count": ${TRIAL_COUNT},
   "topic": "${TOPIC}",
   "bootstrap_servers": "${BOOTSTRAP_SERVERS}",
   "broker_count": ${BROKER_COUNT},
