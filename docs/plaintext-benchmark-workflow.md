@@ -41,6 +41,12 @@ At the sweep directory level, the framework also writes:
 - `summary.json`
 - `summary.csv`
 
+The export layer also writes:
+
+- `export/table.csv`
+- `export/table.tex`
+- `export/*.svg`
+
 ## Structured Result Schema
 
 The standard result schema currently captures:
