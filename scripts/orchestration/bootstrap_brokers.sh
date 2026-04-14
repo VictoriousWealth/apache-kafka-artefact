@@ -85,7 +85,7 @@ wait_for_kafka_service() {
 wait_for_kafka_api() {
   local host="$1"
   local attempt=1
-  local remote_cmd="KAFKA_HOME=/opt/kafka_2.13-3.8.0; sudo bash -lc '\"\${KAFKA_HOME}/bin/kafka-broker-api-versions.sh\" --bootstrap-server ${host}:9092 >/dev/null 2>&1'"
+  local remote_cmd="sudo /opt/kafka_2.13-3.8.0/bin/kafka-broker-api-versions.sh --bootstrap-server ${host}:9092 >/dev/null 2>&1"
   while (( attempt <= MAX_RETRIES )); do
     if remote_ssh "${host}" "${remote_cmd}"; then
       return 0
