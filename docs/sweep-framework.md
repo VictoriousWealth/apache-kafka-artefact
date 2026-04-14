@@ -32,6 +32,7 @@ A sweep definition specifies:
 - the baseline it extends
 - the single variable to vary
 - the range of values to test
+- the number of repeated trials per value, if required
 
 Examples:
 
@@ -50,6 +51,8 @@ Example:
 - value: `10240`
 
 This produces one resolved run where all baseline values remain fixed except `message_size_bytes`.
+
+If a sweep defines `trials`, multiple resolved runs are generated for the same sweep value so the framework can later aggregate mean, minimum, and maximum metrics across repeated trials.
 
 ## Current Implementation Boundary
 
