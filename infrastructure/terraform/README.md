@@ -14,6 +14,18 @@ The infrastructure will provision a small EC2-based Kafka benchmark environment 
 
 The first implementation target is a development environment that can later be extended into a more realistic multi-subnet layout if needed.
 
+## Initial AWS Assumptions
+
+The first deployment baseline assumes:
+
+- region: `eu-west-2`
+- operating system family: `Ubuntu 24.04 LTS`
+- broker and client instance type: `t3.large`
+- broker count: `3`
+- benchmark client count: `1`
+
+These defaults are intended to provide a moderate-cost starting point for framework validation. They are not yet the final dissertation evaluation configuration.
+
 ## Planned Topology
 
 ```text
