@@ -46,8 +46,55 @@ jq -s '
     baseline_name: .[0].baseline_name,
     sweep_variable: .[0].sweep_variable,
     run_count: length,
+    trial_count: ([.[].trial_count] | max),
     security_modes: ([.[].security_mode] | unique),
     values_tested: ([.[].sweep_value] | unique),
+    grouped_stats: (
+      group_by(.sweep_value) |
+      map({
+        sweep_value: .[0].sweep_value,
+        run_count: length,
+        trial_indices: ([.[].trial_index] | sort),
+        throughput_records_per_sec: {
+          mean: ((map(.metrics.throughput_records_per_sec // empty) | add) / (map(.metrics.throughput_records_per_sec // empty) | length)),
+          min: (map(.metrics.throughput_records_per_sec // empty) | min),
+          max: (map(.metrics.throughput_records_per_sec // empty) | max)
+        },
+        throughput_mb_per_sec: {
+          mean: ((map(.metrics.throughput_mb_per_sec // empty) | add) / (map(.metrics.throughput_mb_per_sec // empty) | length)),
+          min: (map(.metrics.throughput_mb_per_sec // empty) | min),
+          max: (map(.metrics.throughput_mb_per_sec // empty) | max)
+        },
+        avg_latency_ms: {
+          mean: (
+            (map(select(.metrics.avg_latency_ms != null) | .metrics.avg_latency_ms) ) as $vals |
+            if ($vals | length) > 0 then (($vals | add) / ($vals | length)) else null end
+          ),
+          min: (
+            (map(select(.metrics.avg_latency_ms != null) | .metrics.avg_latency_ms) ) as $vals |
+            if ($vals | length) > 0 then ($vals | min) else null end
+          ),
+          max: (
+            (map(select(.metrics.avg_latency_ms != null) | .metrics.avg_latency_ms) ) as $vals |
+            if ($vals | length) > 0 then ($vals | max) else null end
+          )
+        },
+        max_latency_ms: {
+          mean: (
+            (map(select(.metrics.max_latency_ms != null) | .metrics.max_latency_ms) ) as $vals |
+            if ($vals | length) > 0 then (($vals | add) / ($vals | length)) else null end
+          ),
+          min: (
+            (map(select(.metrics.max_latency_ms != null) | .metrics.max_latency_ms) ) as $vals |
+            if ($vals | length) > 0 then ($vals | min) else null end
+          ),
+          max: (
+            (map(select(.metrics.max_latency_ms != null) | .metrics.max_latency_ms) ) as $vals |
+            if ($vals | length) > 0 then ($vals | max) else null end
+          )
+        }
+      })
+    ),
     runs: [
       .[] | {
         run_id,
@@ -56,6 +103,8 @@ jq -s '
         sweep_name,
         sweep_variable,
         sweep_value,
+        trial_index,
+        trial_count,
         broker_count: .cluster.broker_count,
         partitions: .cluster.partitions,
         replication_factor: .cluster.replication_factor,
@@ -84,6 +133,8 @@ jq -r '
     "sweep_name",
     "sweep_variable",
     "sweep_value",
+    "trial_index",
+    "trial_count",
     "broker_count",
     "partitions",
     "replication_factor",
@@ -110,6 +161,8 @@ jq -r '
       .sweep_name,
       .sweep_variable,
       (.sweep_value | tostring),
+      (.trial_index | tostring),
+      (.trial_count | tostring),
       (.broker_count | tostring),
       (.partitions | tostring),
       (.replication_factor | tostring),
