@@ -52,6 +52,7 @@ fi
 SWEEP_NAME="$(jq -r '.name' "${SWEEP_FILE}")"
 BASELINE_NAME="$(jq -r '.baseline' "${SWEEP_FILE}")"
 SWEEP_VARIABLE="$(jq -r '.variable' "${SWEEP_FILE}")"
+TRIAL_COUNT="$(jq -r '.trials // 1' "${SWEEP_FILE}")"
 BASELINE_FILE="config/baselines/${BASELINE_NAME}.json"
 
 require_file "${BASELINE_FILE}"
@@ -73,6 +74,7 @@ run_single_value() {
   local sweep_value="$1"
   local run_id="$2"
   local result_subdir="$3"
+  local trial_index="$4"
 
   local config_json
   config_json="$(jq --arg variable "${SWEEP_VARIABLE}" --argjson value "$(jq -cn --arg raw "${sweep_value}" '$raw | fromjson? // $raw')" '.[$variable] = $value' "${BASELINE_FILE}")"
@@ -101,7 +103,7 @@ run_single_value() {
 
   log "Running sweep ${SWEEP_NAME}: ${SWEEP_VARIABLE}=${sweep_value}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
-    "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${BASELINE_NAME}' SWEEP_NAME='${SWEEP_NAME}' SWEEP_VARIABLE='${SWEEP_VARIABLE}' SWEEP_VALUE='${sweep_value}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
+    "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${BASELINE_NAME}' SWEEP_NAME='${SWEEP_NAME}' SWEEP_VARIABLE='${SWEEP_VARIABLE}' SWEEP_VALUE='${sweep_value}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${TRIAL_COUNT}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
 
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" scp "${SSH_OPTS[@]}" -r \
     "${SSH_USER}@${BENCHMARK_CLIENT_IP}:${REMOTE_RESULTS_DIR}/${run_id}" "${LOCAL_RESULTS_DIR}/${result_subdir}/"
@@ -111,8 +113,10 @@ run_single_value() {
 
 while IFS= read -r sweep_value; do
   safe_value="$(echo "${sweep_value}" | tr ' ' '_' | tr '/' '_' | tr ':' '_' | tr '"' '_' | tr ',' '_')"
-  run_id="$(date -u +"%Y%m%dT%H%M%SZ")-${BASELINE_NAME}-${SWEEP_VARIABLE}-${safe_value}"
-  run_single_value "${sweep_value}" "${run_id}" "${SWEEP_NAME}"
+  for ((trial_index = 1; trial_index <= TRIAL_COUNT; trial_index++)); do
+    run_id="$(date -u +"%Y%m%dT%H%M%SZ")-${BASELINE_NAME}-${SWEEP_VARIABLE}-${safe_value}-trial${trial_index}"
+    run_single_value "${sweep_value}" "${run_id}" "${SWEEP_NAME}" "${trial_index}"
+  done
 done < <(jq -cr '.values[]' "${SWEEP_FILE}")
 
 "${SCRIPT_DIR}/aggregate_sweep_results.sh" "${LOCAL_RESULTS_DIR}/${SWEEP_NAME}"
