@@ -8,12 +8,12 @@ The methodology uses custom synthetic workloads instead of a standard benchmark 
 
 ## Method
 
-The artefact uses a one-factor-at-a-time methodology.
+The artefact uses a one-factor-at-a-time parameter sweep methodology.
 
 For each experiment:
 
-- One selected independent variable is changed
-- All other relevant variables are held constant
+- One selected variable is swept across a defined range of values
+- All other relevant variables are held constant by a baseline configuration
 - The workload is executed under repeatable conditions
 - The resulting metrics are recorded in a structured format
 
@@ -79,36 +79,34 @@ To support valid comparisons:
 - warm-up effects should be handled consistently
 - each scenario should be repeated multiple times when practical
 
-## Workload Design
+## Baselines and Sweeps
 
-The framework should support at least three workload classes:
+The framework should define:
 
-- `low`
-- `medium`
-- `high`
+- baseline configurations
+- sweep definitions
 
-Each workload should define at minimum:
+A baseline captures the fixed reference configuration for a set of runs.
 
-- message size
-- target message rate or producer intensity
-- producer count
-- consumer count
-- batching-related settings if used
+A sweep definition captures:
 
-These workloads are synthetic by design. They do not attempt to reproduce a single real business workload. Instead, they provide controlled traffic profiles that make it possible to isolate how Kafka security and deployment parameters affect throughput and latency.
+- the variable being varied
+- the range of values to test
 
-The dissertation does not need to report every possible workload combination. It should report a justified subset that is representative and manageable.
+This allows one concrete run to be generated per sweep value while all remaining parameters stay fixed.
 
 ## Experiment Lifecycle
 
-1. Select a scenario definition.
-2. Start Kafka in the correct security mode.
-3. Verify topic and broker readiness.
-4. Apply workload parameters.
-5. Run producer and consumer benchmarks.
-6. Collect benchmark and environment metrics.
-7. Persist outputs with metadata.
-8. Reset before the next run.
+1. Select a baseline configuration.
+2. Select a sweep definition.
+3. Resolve one concrete run from the current sweep value.
+4. Start Kafka in the correct security mode.
+5. Verify topic and broker readiness.
+6. Apply benchmark parameters.
+7. Run producer and consumer benchmarks.
+8. Collect benchmark and environment metrics.
+9. Persist outputs with metadata.
+10. Repeat for the next sweep value.
 
 ## Threats to Validity to Control
 
@@ -122,4 +120,4 @@ The methodology should explicitly consider:
 
 ## Reporting Position for the Dissertation
 
-The dissertation should describe the artefact as a configurable framework, but the reported evaluation should be a selected, justified subset of the framework's available parameter space.
+The dissertation should describe the artefact as a configurable parameter sweep framework, but the reported evaluation should be a selected, justified subset of the framework's available parameter space.
