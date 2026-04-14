@@ -1,57 +1,45 @@
-# Initial Experiment Matrix
+# Initial Sweep Set
 
 ## Purpose
 
-This document defines the first-pass scenario set for the benchmarking artefact. It is intentionally narrow so the initial implementation stays aligned with the dissertation scope.
+This document defines the first-pass sweep set for the benchmarking artefact. It is intentionally narrow so the initial implementation stays aligned with the dissertation scope.
 
-## Baseline Comparison Set
+## Baseline Configuration
 
-The first comparison should keep all non-security settings fixed and vary only:
+The first baseline should keep all non-security settings fixed while the chosen sweep variable varies.
 
-- `security_mode = plaintext`
-- `security_mode = tls`
-- `security_mode = mtls`
+- baseline name: `plaintext-default`
 
-## Initial Workloads
+## Initial Sweep Definitions
 
-The first workload definitions should be simple and interpretable.
+The first sweep definitions should be simple and interpretable.
 
-### Low
+### Security Mode Sweep
 
-- smaller message size
-- lower producer intensity
-- intended to represent light traffic
+- variable: `security_mode`
+- values: `plaintext`, `tls`, `mtls`
 
-### Medium
+### Message Size Sweep
 
-- moderate message size
-- moderate producer intensity
-- intended to represent steady operational load
+- variable: `message_size_bytes`
+- values: `1024`, `10240`, `102400`
 
-### High
+### Throughput Sweep
 
-- larger message size or higher producer intensity
-- intended to push the broker closer to saturation
+- variable: `target_messages_per_second`
+- values: `1000`, `10000`, `50000`
 
-## First Implementation Matrix
+## First Implementation Set
 
-The minimum useful matrix is:
+The minimum useful implementation set is:
 
-| Security Mode | Workload |
-| --- | --- |
-| plaintext | low |
-| plaintext | medium |
-| plaintext | high |
-| tls | low |
-| tls | medium |
-| tls | high |
-| mtls | low |
-| mtls | medium |
-| mtls | high |
+- one baseline file
+- one plaintext-executable sweep such as `message_size_bytes`
+- one future security sweep for `plaintext`, `tls`, and `mtls`
 
 ## Second-Phase Sweeps
 
-After the baseline matrix works correctly, secondary variables can be explored one at a time:
+After the initial plaintext sweep path works correctly, additional variables can be explored one at a time:
 
 - `message_size`
 - `producer_count`
@@ -65,6 +53,6 @@ These should be introduced only after the baseline matrix is stable.
 
 The dissertation does not need to include every run the framework can perform. It should include:
 
-- the baseline security comparison
+- the baseline security sweep
 - a justified subset of secondary sweeps
 - enough repetition to support a credible interpretation
