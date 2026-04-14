@@ -115,4 +115,6 @@ while IFS= read -r sweep_value; do
   run_single_value "${sweep_value}" "${run_id}" "${SWEEP_NAME}"
 done < <(jq -cr '.values[]' "${SWEEP_FILE}")
 
+"${SCRIPT_DIR}/aggregate_sweep_results.sh" "${LOCAL_RESULTS_DIR}/${SWEEP_NAME}"
+
 log "Sweep ${SWEEP_NAME} completed."
