@@ -48,31 +48,31 @@ Objective:
 
 Deliverables:
 
-- workload configuration files
+- baseline and sweep configuration files
 - producer benchmark runner
 - consumer benchmark runner
 - result directory structure
 
 Exit criteria:
 
-- at least one low-intensity workload can run successfully
+- at least one plaintext sweep value can run successfully
 - throughput output is persisted in a structured format
 
 ## Phase 4: Experiment Controller
 
 Objective:
 
-- automate end-to-end execution of scenarios
+- automate end-to-end execution of baselines and sweeps
 
 Deliverables:
 
-- scenario loader
+- baseline and sweep loader
 - orchestration scripts
 - run metadata capture
 
 Exit criteria:
 
-- a single command can execute a named scenario and store its outputs
+- a single command can execute a named sweep and store its outputs
 
 ## Phase 5: TLS and mTLS Support
 
@@ -98,13 +98,13 @@ Objective:
 
 Deliverables:
 
-- low, medium, and high workload profiles
-- security-mode comparison runs
+- one or more baseline files
+- one or more sweep definitions
 - structured results for later plotting
 
 Exit criteria:
 
-- complete matrix for `plaintext`, `tls`, and `mtls`
+- complete security sweep for `plaintext`, `tls`, and `mtls`
 - repeatable output directories with traceable metadata
 
 ## Phase 7: Secondary Parameter Sweeps
@@ -132,5 +132,5 @@ The next implementation work should focus on:
 
 1. finalising AWS environment assumptions
 2. adding instance bootstrap scripts
-3. defining the first workload and scenario config files
+3. defining the first baseline and sweep config files
 4. deciding whether the benchmark clients will be Kafka-native tools, custom scripts, or a hybrid approach
