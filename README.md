@@ -20,7 +20,7 @@ To answer this, the artefact will provide:
 
 - A reproducible Kafka deployment environment
 - Security modes for `plaintext`, `TLS`, and `mTLS`
-- Configurable workloads for producers and consumers
+- Configurable synthetic workloads for producers and consumers
 - An automated experiment runner
 - Structured results suitable for later statistical analysis and dissertation figures
 
@@ -35,6 +35,8 @@ The framework uses a controlled one-factor-at-a-time methodology:
 - Additional host metrics such as CPU and memory may be included if feasible
 
 This keeps the artefact aligned with the dissertation rubric, which requires realism, repeatability, and rigorous benchmarking under multiple workloads.
+
+The artefact is intentionally based on custom synthetic workloads rather than an off-the-shelf benchmark suite. This keeps the evaluation tightly aligned to the dissertation question, which focuses on the comparative overhead of `plaintext`, `TLS`, and `mTLS` Kafka deployments under controlled conditions.
 
 ## Planned Repository Structure
 
