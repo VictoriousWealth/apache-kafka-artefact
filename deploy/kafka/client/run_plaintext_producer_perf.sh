@@ -9,6 +9,15 @@ RECORD_SIZE="${RECORD_SIZE:-1024}"
 THROUGHPUT="${THROUGHPUT:--1}"
 PARTITIONS="${PARTITIONS:-6}"
 REPLICATION_FACTOR="${REPLICATION_FACTOR:-3}"
+BROKER_COUNT="${BROKER_COUNT:-3}"
+SCENARIO_NAME="${SCENARIO_NAME:-plaintext-ad-hoc}"
+WORKLOAD_NAME="${WORKLOAD_NAME:-ad-hoc}"
+SECURITY_MODE="${SECURITY_MODE:-plaintext}"
+PRODUCER_COUNT="${PRODUCER_COUNT:-1}"
+CONSUMER_COUNT="${CONSUMER_COUNT:-1}"
+BATCH_SIZE="${BATCH_SIZE:-16384}"
+LINGER_MS="${LINGER_MS:-5}"
+ACKS="${ACKS:-all}"
 RESULT_ROOT="${RESULT_ROOT:-/var/lib/kafka-client/results}"
 RUN_ID="${RUN_ID:-$(date -u +"%Y%m%dT%H%M%SZ")-plaintext-producer}"
 KAFKA_VERSION="${KAFKA_VERSION:-3.8.0}"
@@ -53,21 +62,33 @@ mkdir -p "${RUN_DIR}"
   --record-size "${RECORD_SIZE}" \
   --throughput "${THROUGHPUT}" \
   --producer.config "${CLIENT_CONFIG}" \
-  --producer-props "bootstrap.servers=${BOOTSTRAP_SERVERS}" \
+  --producer-props \
+  "bootstrap.servers=${BOOTSTRAP_SERVERS}" \
+  "batch.size=${BATCH_SIZE}" \
+  "linger.ms=${LINGER_MS}" \
+  "acks=${ACKS}" \
   > "${RAW_OUTPUT}" 2>&1
 
 TEMP_METADATA="$(mktemp "${RUN_DIR}/metadata.XXXXXX.json")"
 cat > "${TEMP_METADATA}" <<EOF
 {
   "run_id": "${RUN_ID}",
-  "mode": "plaintext",
+  "security_mode": "${SECURITY_MODE}",
+  "scenario_name": "${SCENARIO_NAME}",
+  "workload_name": "${WORKLOAD_NAME}",
   "topic": "${TOPIC}",
   "bootstrap_servers": "${BOOTSTRAP_SERVERS}",
+  "broker_count": ${BROKER_COUNT},
   "num_records": ${NUM_RECORDS},
   "record_size": ${RECORD_SIZE},
   "throughput_limit": ${THROUGHPUT},
   "partitions": ${PARTITIONS},
   "replication_factor": ${REPLICATION_FACTOR},
+  "producer_count": ${PRODUCER_COUNT},
+  "consumer_count": ${CONSUMER_COUNT},
+  "batch_size": ${BATCH_SIZE},
+  "linger_ms": ${LINGER_MS},
+  "acks": "${ACKS}",
   "raw_output": "${RAW_OUTPUT}"
 }
 EOF
