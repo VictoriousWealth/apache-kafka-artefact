@@ -2,7 +2,7 @@
 
 ## Goal
 
-The artefact should allow another person to rerun the same benchmark scenarios and obtain comparable results under the same environment assumptions.
+The artefact should allow another person to rerun the same benchmark baselines and sweeps and obtain comparable results under the same environment assumptions.
 
 ## Reproducibility Requirements
 
@@ -11,8 +11,9 @@ Each run should capture:
 - timestamp
 - software versions
 - Kafka image or binary version
-- scenario identifier
-- workload identifier
+- baseline identifier
+- sweep identifier
+- sweep variable and value
 - security mode
 - topic settings
 - broker settings relevant to the run
@@ -53,7 +54,7 @@ results/
 
 Where feasible:
 
-- repeat each scenario multiple times
+- repeat each sweep value multiple times where practical
 - record summary statistics later during analysis
 - note anomalies rather than silently discarding them
 
