@@ -28,6 +28,9 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 8. `parse_producer_perf_results.sh`
    Convert raw `producer-perf.log` output into a standard structured result schema
 
+9. `aggregate_sweep_results.sh`
+   Aggregate all per-run `result.json` files under a sweep into `summary.json` and `summary.csv`
+
 ## Requirements
 
 - `terraform`
