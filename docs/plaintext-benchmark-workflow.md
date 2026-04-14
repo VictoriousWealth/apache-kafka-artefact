@@ -7,8 +7,7 @@ This workflow defines the first runnable benchmark path for the artefact: a plai
 ## Sequence
 
 1. Provision infrastructure with Terraform.
-2. Run `scripts/orchestration/deploy_plaintext_cluster.sh`.
-3. Run `scripts/orchestration/run_parameter_sweep.sh`.
+2. Run `scripts/run_plaintext_workflow.sh`.
 4. Inspect the copied results under `results/plaintext/`.
 
 ## Current Benchmark Shape
