@@ -4,7 +4,7 @@ This repository contains the implementation plan and supporting documentation fo
 
 The artefact is defined as:
 
-> A configurable Kafka benchmarking framework that supports controlled one-factor-at-a-time evaluation of security and deployment parameters, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
+> A configurable Kafka benchmarking framework that supports controlled one-factor-at-a-time parameter sweeps over security and deployment variables, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
 
 ## Current Status
 
@@ -28,7 +28,7 @@ To answer this, the artefact will provide:
 
 The framework uses a controlled one-factor-at-a-time methodology:
 
-- One independent variable is changed per experiment run
+- One selected variable is swept across a defined range of values
 - All remaining conditions are kept fixed
 - Throughput is treated as the primary metric
 - Latency is treated as a secondary metric
@@ -55,8 +55,8 @@ infrastructure/
   terraform/
 scripts/
 config/
-  scenarios/
-  workloads/
+  baselines/
+  sweeps/
 results/
 src/
   producer/
@@ -70,7 +70,7 @@ The design package is split into:
 
 - `docs/architecture.md`: system structure, components, and execution flow
 - `docs/experiment-methodology.md`: benchmarking method and validity controls
-- `docs/experiment-matrix.md`: first-pass scenario definitions
+- `docs/experiment-matrix.md`: first-pass sweep definitions
 - `docs/reproducibility.md`: environment and rerun guidance
 - `docs/thesis-mapping.md`: how the artefact supports the dissertation rubric and chapters
 
