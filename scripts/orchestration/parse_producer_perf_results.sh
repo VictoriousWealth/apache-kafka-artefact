@@ -64,8 +64,10 @@ jq \
     schema_version: "1.0",
     run_id: .run_id,
     security_mode: .security_mode,
-    scenario_name: .scenario_name,
-    workload_name: .workload_name,
+    baseline_name: .baseline_name,
+    sweep_name: .sweep_name,
+    sweep_variable: .sweep_variable,
+    sweep_value: .sweep_value,
     topic: .topic,
     cluster: {
       bootstrap_servers: .bootstrap_servers,
@@ -73,7 +75,7 @@ jq \
       partitions: .partitions,
       replication_factor: .replication_factor
     },
-    workload: {
+    run_config: {
       num_records: .num_records,
       record_size_bytes: .record_size,
       throughput_limit_records_per_sec: .throughput_limit,
