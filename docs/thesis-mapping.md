@@ -30,7 +30,7 @@ The artefact supports this through:
 
 Addressed by:
 
-- realistic Kafka configuration
+- realistic Kafka configuration on dedicated VM instances
 - explicit security modes
 - support for topics, partitions, and replication
 - documented rationale for TLS and mTLS
