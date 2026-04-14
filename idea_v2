@@ -1,0 +1,134 @@
+Yes — that makes sense.
+
+What you’re describing is not “experiment set A, B, C” as separate named studies, but a **parameter-sweep framework** where:
+
+* you define a set of variables
+* choose a range of values for each one
+* vary **one variable at a time**
+* hold the others constant
+* record throughput, latency, and other metrics for each run
+
+That is a perfectly valid artefact design, and honestly it is a cleaner way to describe it.
+
+## What your artefact is, then
+
+Your artefact is best defined as:
+
+> **A configurable Kafka benchmarking framework that allows controlled one-factor-at-a-time evaluation of how security and system parameters affect throughput, latency, and related performance metrics.**
+
+So the artefact is not just “the experiment results.”
+It is the **tool/system** that lets a user specify parameters and run reproducible measurements.
+
+## The logic you’re describing
+
+You have parameters, say:
+
+* security mode
+* broker count
+* partition count
+* replication factor
+* message size
+* producer concurrency
+* batching settings
+* acknowledgement mode
+
+Then for each parameter:
+
+* choose a value for that parameter
+* keep all the other parameters fixed
+* run the benchmark
+* store results
+* repeat across the range
+
+So yes, this is basically a **controlled sweep over a multidimensional configuration space**, but done in a **one-variable-at-a-time** way.
+
+## Why this is good
+
+This works well for your dissertation because it gives you:
+
+* fairness
+* interpretability
+* reproducibility
+* manageable scope
+
+It also avoids the chaos of changing many things at once.
+
+## The important thing to say in your dissertation
+
+You should explicitly say that the framework uses a **controlled one-factor-at-a-time methodology**.
+
+Something like:
+
+> The artefact supports controlled benchmarking by varying one configuration parameter at a time while keeping all remaining parameters fixed. This allows the isolated performance impact of each parameter, including security mechanisms such as TLS and mTLS, to be measured without confounding effects from simultaneous changes in other aspects of the system configuration.
+
+That is a strong methodology sentence.
+
+## One warning
+
+Do not make it sound like users can pick absolutely anything in a free-form way with no structure, because then it sounds like a random benchmarking toy rather than a research artefact.
+
+Frame it as:
+
+> configurable, but within a controlled benchmarking framework
+
+So:
+
+* configurable ranges
+* controlled execution
+* fixed comparison baselines
+* reproducible outputs
+
+## Best way to think about the variables
+
+You can describe them as:
+
+### Primary independent variable
+
+Security mode:
+
+* plaintext
+* TLS
+* mTLS
+
+### Secondary configurable variables
+
+* broker count
+* partitions
+* replication factor
+* message size
+* producer count
+* batch size
+* ack mode
+
+### Dependent variables
+
+* throughput
+* latency
+* CPU usage
+* memory usage, if included
+
+That keeps your dissertation focused, while still allowing the artefact to be flexible.
+
+## The key distinction
+
+Your **artefact** can support many parameter sweeps.
+
+But your **dissertation evaluation** does not need to exhaustively test every combination.
+
+That means:
+
+* the system is general
+* your reported experiments are a selected, justified subset
+
+That is a very strong position academically.
+
+## Clean final framing
+
+So I would define your artefact like this:
+
+> The artefact is a configurable Kafka performance benchmarking framework that supports controlled one-factor-at-a-time evaluation of security and deployment parameters. It enables systematic measurement of throughput, latency, and related metrics across a range of Kafka configurations, with particular emphasis on quantifying the overhead introduced by TLS and mTLS in high-throughput environments.
+
+That is probably the clearest version of what you’re building.
+
+If you want, I can now turn this into a proper “Artefact Definition and Scope” subsection for your methodology chapter.
+
