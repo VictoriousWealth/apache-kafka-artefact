@@ -30,6 +30,10 @@ variable "broker_count" {
   type = number
 }
 
+variable "root_volume_size_gb" {
+  type = number
+}
+
 variable "benchmark_client_name" {
   type = string
 }
