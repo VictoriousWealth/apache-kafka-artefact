@@ -102,5 +102,6 @@ cat > "${TEMP_METADATA}" <<EOF
 EOF
 mv "${TEMP_METADATA}" "${METADATA_JSON}"
 TEMP_METADATA=""
+chmod -R a+rX "${RUN_DIR}"
 
 echo "Producer benchmark run completed at ${RUN_DIR}"
