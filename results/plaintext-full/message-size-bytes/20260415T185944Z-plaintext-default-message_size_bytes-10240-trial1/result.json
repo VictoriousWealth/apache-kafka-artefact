@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "run_id": "20260415T185944Z-plaintext-default-message_size_bytes-10240-trial1",
+  "security_mode": "plaintext",
+  "baseline_name": "plaintext-default",
+  "sweep_name": "message-size-bytes",
+  "sweep_variable": "message_size_bytes",
+  "sweep_value": "10240",
+  "trial_index": 1,
+  "trial_count": 3,
+  "topic": "benchmark-topic",
+  "cluster": {
+    "bootstrap_servers": "10.20.1.69:9092,10.20.1.238:9092,10.20.1.91:9092",
+    "broker_count": 3,
+    "partitions": 6,
+    "replication_factor": 3
+  },
+  "run_config": {
+    "num_records": 100000,
+    "record_size_bytes": 10240,
+    "throughput_limit_records_per_sec": 1000,
+    "producer_count": 1,
+    "consumer_count": 1,
+    "batch_size": 16384,
+    "linger_ms": 5,
+    "acks": "all"
+  },
+  "metrics": {
+    "records_sent": 100000,
+    "throughput_records_per_sec": 999.670109,
+    "throughput_mb_per_sec": 9.76,
+    "avg_latency_ms": 6.36,
+    "max_latency_ms": 549.0
+  },
+  "files": {
+    "raw_output": "/var/lib/kafka-client/results/20260415T185944Z-plaintext-default-message_size_bytes-10240-trial1/producer-perf.log",
+    "metadata": "metadata.json"
+  },
+  "raw_summary_line": "100000 records sent, 999.670109 records/sec (9.76 MB/sec), 6.36 ms avg latency, 549.00 ms max latency, 3 ms 50th, 15 ms 95th, 54 ms 99th, 234 ms 99.9th."
+}
