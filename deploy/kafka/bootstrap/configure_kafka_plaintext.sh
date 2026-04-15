@@ -49,6 +49,8 @@ sed \
 
 mv "${TEMP_CONFIG}" "${CONFIG_OUTPUT}"
 TEMP_CONFIG=""
+chown kafka:kafka "${CONFIG_OUTPUT}"
+chmod 0644 "${CONFIG_OUTPUT}"
 
 "${KAFKA_HOME}/bin/kafka-storage.sh" format -t "${CLUSTER_ID}" -c "${CONFIG_OUTPUT}" --ignore-formatted
 
