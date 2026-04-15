@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/lib.sh"
 
 OUTPUT_DIR="${OUTPUT_DIR:-.orchestration}"
 INVENTORY_FILE="${INVENTORY_FILE:-${OUTPUT_DIR}/inventory.env}"
+METADATA_FILE="${METADATA_FILE:-${OUTPUT_DIR}/cluster.env}"
 SSH_USER="${SSH_USER:-ubuntu}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-}"
 SSH_OPTS=(-i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no -o ConnectTimeout=10)
@@ -23,29 +24,21 @@ if [[ -z "${SSH_KEY_PATH}" ]]; then
 fi
 
 require_file "${INVENTORY_FILE}"
+require_file "${METADATA_FILE}"
 require_file "${SWEEP_FILE}"
 
 # shellcheck disable=SC1090
 source "${INVENTORY_FILE}"
+# shellcheck disable=SC1090
+source "${METADATA_FILE}"
 
 if [[ -z "${BENCHMARK_CLIENT_IP:-}" ]]; then
   echo "BENCHMARK_CLIENT_IP not found in inventory."
   exit 1
 fi
 
-BROKER_IPS=()
-INDEX=1
-while true; do
-  VAR_NAME="BROKER_${INDEX}_IP"
-  if [[ -z "${!VAR_NAME:-}" ]]; then
-    break
-  fi
-  BROKER_IPS+=("${!VAR_NAME}")
-  INDEX=$((INDEX + 1))
-done
-
-if [[ "${#BROKER_IPS[@]}" -eq 0 ]]; then
-  echo "No broker IPs found in inventory."
+if [[ -z "${BOOTSTRAP_SERVERS:-}" ]]; then
+  echo "BOOTSTRAP_SERVERS not found in cluster metadata."
   exit 1
 fi
 
@@ -56,15 +49,6 @@ TRIAL_COUNT="$(jq -r '.trials // 1' "${SWEEP_FILE}")"
 BASELINE_FILE="config/baselines/${BASELINE_NAME}.json"
 
 require_file "${BASELINE_FILE}"
-
-BOOTSTRAP_SERVERS=""
-for host in "${BROKER_IPS[@]}"; do
-  if [[ -n "${BOOTSTRAP_SERVERS}" ]]; then
-    BOOTSTRAP_SERVERS="${BOOTSTRAP_SERVERS},${host}:9092"
-  else
-    BOOTSTRAP_SERVERS="${host}:9092"
-  fi
-done
 
 remote_ssh() {
   ssh "${SSH_OPTS[@]}" "${SSH_USER}@${BENCHMARK_CLIENT_IP}" "$@"
