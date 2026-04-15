@@ -24,6 +24,7 @@ LINGER_MS="${LINGER_MS:-5}"
 ACKS="${ACKS:-all}"
 RESULT_ROOT="${RESULT_ROOT:-/var/lib/kafka-client/results}"
 RUN_ID="${RUN_ID:-$(date -u +"%Y%m%dT%H%M%SZ")-plaintext-producer}"
+DELETE_TOPIC_AFTER_RUN="${DELETE_TOPIC_AFTER_RUN:-true}"
 KAFKA_VERSION="${KAFKA_VERSION:-3.8.0}"
 SCALA_VERSION="${SCALA_VERSION:-2.13}"
 INSTALL_DIR="${INSTALL_DIR:-/opt}"
@@ -33,7 +34,10 @@ RUN_DIR="${RESULT_ROOT}/${RUN_ID}"
 RAW_OUTPUT="${RUN_DIR}/producer-perf.log"
 METADATA_JSON="${RUN_DIR}/metadata.json"
 TOPIC_OUTPUT="${RUN_DIR}/topic-create.log"
+TOPIC_DELETE_OUTPUT="${RUN_DIR}/topic-delete.log"
 TEMP_METADATA=""
+RUN_TOPIC="${TOPIC}-${RUN_ID}"
+PRODUCER_EXIT_CODE=0
 
 cleanup() {
   if [[ -n "${TEMP_METADATA}" && -f "${TEMP_METADATA}" ]]; then
@@ -55,13 +59,14 @@ mkdir -p "${RUN_DIR}"
   --command-config "${CLIENT_CONFIG}" \
   --create \
   --if-not-exists \
-  --topic "${TOPIC}" \
+  --topic "${RUN_TOPIC}" \
   --partitions "${PARTITIONS}" \
   --replication-factor "${REPLICATION_FACTOR}" \
   > "${TOPIC_OUTPUT}" 2>&1
 
+set +e
 "${KAFKA_HOME}/bin/kafka-producer-perf-test.sh" \
-  --topic "${TOPIC}" \
+  --topic "${RUN_TOPIC}" \
   --num-records "${NUM_RECORDS}" \
   --record-size "${RECORD_SIZE}" \
   --throughput "${THROUGHPUT}" \
@@ -72,6 +77,18 @@ mkdir -p "${RUN_DIR}"
   "linger.ms=${LINGER_MS}" \
   "acks=${ACKS}" \
   > "${RAW_OUTPUT}" 2>&1
+PRODUCER_EXIT_CODE=$?
+set -e
+
+if [[ "${DELETE_TOPIC_AFTER_RUN}" == "true" ]]; then
+  "${KAFKA_HOME}/bin/kafka-topics.sh" \
+    --bootstrap-server "${BOOTSTRAP_SERVERS}" \
+    --command-config "${CLIENT_CONFIG}" \
+    --delete \
+    --if-exists \
+    --topic "${RUN_TOPIC}" \
+    > "${TOPIC_DELETE_OUTPUT}" 2>&1 || true
+fi
 
 TEMP_METADATA="$(mktemp "${RUN_DIR}/metadata.XXXXXX.json")"
 cat > "${TEMP_METADATA}" <<EOF
@@ -84,7 +101,9 @@ cat > "${TEMP_METADATA}" <<EOF
   "sweep_value": "${SWEEP_VALUE}",
   "trial_index": ${TRIAL_INDEX},
   "trial_count": ${TRIAL_COUNT},
-  "topic": "${TOPIC}",
+  "topic": "${RUN_TOPIC}",
+  "base_topic": "${TOPIC}",
+  "delete_topic_after_run": ${DELETE_TOPIC_AFTER_RUN},
   "bootstrap_servers": "${BOOTSTRAP_SERVERS}",
   "broker_count": ${BROKER_COUNT},
   "num_records": ${NUM_RECORDS},
@@ -103,5 +122,10 @@ EOF
 mv "${TEMP_METADATA}" "${METADATA_JSON}"
 TEMP_METADATA=""
 chmod -R a+rX "${RUN_DIR}"
+
+if [[ "${PRODUCER_EXIT_CODE}" -ne 0 ]]; then
+  echo "Producer benchmark failed with exit code ${PRODUCER_EXIT_CODE}. See ${RAW_OUTPUT}"
+  exit "${PRODUCER_EXIT_CODE}"
+fi
 
 echo "Producer benchmark run completed at ${RUN_DIR}"
