@@ -49,3 +49,9 @@ variable "broker_count" {
   description = "Number of Kafka broker instances to create."
   default     = 3
 }
+
+variable "root_volume_size_gb" {
+  type        = number
+  description = "Root EBS volume size for brokers and the benchmark client."
+  default     = 40
+}
