@@ -10,6 +10,14 @@ output "broker_public_ips" {
   value = module.ec2_cluster.broker_public_ips
 }
 
+output "broker_private_ips" {
+  value = module.ec2_cluster.broker_private_ips
+}
+
 output "benchmark_client_public_ip" {
   value = module.ec2_cluster.benchmark_client_public_ip
+}
+
+output "benchmark_client_private_ip" {
+  value = module.ec2_cluster.benchmark_client_private_ip
 }
