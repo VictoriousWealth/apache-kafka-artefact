@@ -46,14 +46,21 @@ source "${INVENTORY_FILE}"
 # shellcheck disable=SC1090
 source "${METADATA_FILE}"
 
-BROKER_IPS=()
+BROKER_PUBLIC_IPS=()
+BROKER_PRIVATE_IPS=()
 INDEX=1
 while true; do
   VAR_NAME="BROKER_${INDEX}_IP"
   if [[ -z "${!VAR_NAME:-}" ]]; then
     break
   fi
-  BROKER_IPS+=("${!VAR_NAME}")
+  BROKER_PUBLIC_IPS+=("${!VAR_NAME}")
+  PRIVATE_VAR_NAME="BROKER_${INDEX}_PRIVATE_IP"
+  if [[ -z "${!PRIVATE_VAR_NAME:-}" ]]; then
+    echo "Missing ${PRIVATE_VAR_NAME} in inventory."
+    exit 1
+  fi
+  BROKER_PRIVATE_IPS+=("${!PRIVATE_VAR_NAME}")
   INDEX=$((INDEX + 1))
 done
 
@@ -84,8 +91,9 @@ wait_for_kafka_service() {
 
 wait_for_kafka_api() {
   local host="$1"
+  local bootstrap_host="$2"
   local attempt=1
-  local remote_cmd="sudo /opt/kafka_2.13-3.8.0/bin/kafka-broker-api-versions.sh --bootstrap-server ${host}:9092 >/dev/null 2>&1"
+  local remote_cmd="sudo /opt/kafka_2.13-3.8.0/bin/kafka-broker-api-versions.sh --bootstrap-server ${bootstrap_host}:9092 >/dev/null 2>&1"
   while (( attempt <= MAX_RETRIES )); do
     if remote_ssh "${host}" "${remote_cmd}"; then
       return 0
@@ -96,8 +104,8 @@ wait_for_kafka_api() {
   return 1
 }
 
-for i in "${!BROKER_IPS[@]}"; do
-  HOST="${BROKER_IPS[$i]}"
+for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+  HOST="${BROKER_PUBLIC_IPS[$i]}"
 
   log "Preparing broker host ${HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "mkdir -p ${REMOTE_DIR}"
@@ -112,34 +120,37 @@ for i in "${!BROKER_IPS[@]}"; do
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 -o kafka -g kafka ${REMOTE_DIR}/server.properties.plaintext.template /etc/kafka/server.properties.template"
 done
 
-FIRST_BROKER="${BROKER_IPS[0]}"
+FIRST_BROKER="${BROKER_PUBLIC_IPS[0]}"
 TEMP_CLUSTER_ID="$(mktemp "${OUTPUT_DIR}/cluster.id.XXXXXX")"
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${FIRST_BROKER}" "sudo bash ${REMOTE_DIR}/generate_cluster_id.sh >/dev/null && sudo cat /etc/kafka/cluster.id" > "${TEMP_CLUSTER_ID}"
 mv "${TEMP_CLUSTER_ID}" "${OUTPUT_DIR}/cluster.id"
 TEMP_CLUSTER_ID=""
 
-for i in "${!BROKER_IPS[@]}"; do
+for i in "${!BROKER_PUBLIC_IPS[@]}"; do
   NODE_ID=$((i + 1))
-  HOST="${BROKER_IPS[$i]}"
+  HOST="${BROKER_PUBLIC_IPS[$i]}"
+  KAFKA_HOST="${BROKER_PRIVATE_IPS[$i]}"
 
   log "Configuring broker ${NODE_ID} at ${HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_scp_to "${HOST}" "${OUTPUT_DIR}/cluster.id"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 -o kafka -g kafka ${REMOTE_DIR}/cluster.id /etc/kafka/cluster.id"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" \
-    "sudo bash ${REMOTE_DIR}/configure_kafka_plaintext.sh ${NODE_ID} '${CONTROLLER_QUORUM_VOTERS}' ${HOST}"
+    "sudo bash ${REMOTE_DIR}/configure_kafka_plaintext.sh ${NODE_ID} '${CONTROLLER_QUORUM_VOTERS}' ${KAFKA_HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/create_systemd_service.sh"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo systemctl restart kafka"
   if ! wait_for_kafka_service "${HOST}"; then
     log "Kafka service failed health check on ${HOST}"
     exit 1
   fi
-  printf 'BOOTSTRAPPED=true\nNODE_ID=%s\nHOST=%s\n' "${NODE_ID}" "${HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
+  printf 'BOOTSTRAPPED=true\nNODE_ID=%s\nHOST=%s\nKAFKA_HOST=%s\n' "${NODE_ID}" "${HOST}" "${KAFKA_HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
 done
 
-for host in "${BROKER_IPS[@]}"; do
-  log "Checking Kafka API readiness on ${host}"
-  if ! wait_for_kafka_api "${host}"; then
-    log "Kafka API readiness check failed on ${host}"
+for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+  HOST="${BROKER_PUBLIC_IPS[$i]}"
+  KAFKA_HOST="${BROKER_PRIVATE_IPS[$i]}"
+  log "Checking Kafka API readiness on ${KAFKA_HOST}"
+  if ! wait_for_kafka_api "${HOST}" "${KAFKA_HOST}"; then
+    log "Kafka API readiness check failed on ${KAFKA_HOST}"
     exit 1
   fi
 done
