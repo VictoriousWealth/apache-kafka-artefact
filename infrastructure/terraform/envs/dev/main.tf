@@ -34,5 +34,6 @@ module "ec2_cluster" {
   broker_security_group = module.network.kafka_security_group_id
   client_security_group = module.network.client_security_group_id
   broker_count          = var.broker_count
+  root_volume_size_gb   = var.root_volume_size_gb
   benchmark_client_name = "${var.name_prefix}-benchmark-client"
 }
