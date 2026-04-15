@@ -133,11 +133,15 @@ for i in "${!BROKER_IPS[@]}"; do
     log "Kafka service failed health check on ${HOST}"
     exit 1
   fi
-  if ! wait_for_kafka_api "${HOST}"; then
-    log "Kafka API readiness check failed on ${HOST}"
+  printf 'BOOTSTRAPPED=true\nNODE_ID=%s\nHOST=%s\n' "${NODE_ID}" "${HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
+done
+
+for host in "${BROKER_IPS[@]}"; do
+  log "Checking Kafka API readiness on ${host}"
+  if ! wait_for_kafka_api "${host}"; then
+    log "Kafka API readiness check failed on ${host}"
     exit 1
   fi
-  printf 'BOOTSTRAPPED=true\nNODE_ID=%s\nHOST=%s\n' "${NODE_ID}" "${HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
 done
 
 echo "Broker bootstrap complete."
