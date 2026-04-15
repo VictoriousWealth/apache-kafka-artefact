@@ -109,7 +109,7 @@ for i in "${!BROKER_IPS[@]}"; do
     deploy/kafka/config/server.properties.plaintext.template
 
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/install_kafka.sh"
-  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 ${REMOTE_DIR}/server.properties.plaintext.template /etc/kafka/server.properties.template"
+  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 -o kafka -g kafka ${REMOTE_DIR}/server.properties.plaintext.template /etc/kafka/server.properties.template"
 done
 
 FIRST_BROKER="${BROKER_IPS[0]}"
@@ -124,7 +124,7 @@ for i in "${!BROKER_IPS[@]}"; do
 
   log "Configuring broker ${NODE_ID} at ${HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_scp_to "${HOST}" "${OUTPUT_DIR}/cluster.id"
-  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 ${REMOTE_DIR}/cluster.id /etc/kafka/cluster.id"
+  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 -o kafka -g kafka ${REMOTE_DIR}/cluster.id /etc/kafka/cluster.id"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" \
     "sudo bash ${REMOTE_DIR}/configure_kafka_plaintext.sh ${NODE_ID} '${CONTROLLER_QUORUM_VOTERS}' ${HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/create_systemd_service.sh"
