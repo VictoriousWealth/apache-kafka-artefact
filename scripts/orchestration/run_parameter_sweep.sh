@@ -51,7 +51,7 @@ BASELINE_FILE="config/baselines/${BASELINE_NAME}.json"
 require_file "${BASELINE_FILE}"
 
 remote_ssh() {
-  ssh "${SSH_OPTS[@]}" "${SSH_USER}@${BENCHMARK_CLIENT_IP}" "$@"
+  ssh -n "${SSH_OPTS[@]}" "${SSH_USER}@${BENCHMARK_CLIENT_IP}" "$@"
 }
 
 run_single_value() {
