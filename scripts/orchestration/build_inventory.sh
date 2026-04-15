@@ -20,17 +20,27 @@ if [[ ! -f "${TF_OUTPUT_JSON}" ]]; then
   exit 1
 fi
 
-BROKER_IPS="$(jq -r '.broker_public_ips.value[]' "${TF_OUTPUT_JSON}")"
-CLIENT_IP="$(jq -r '.benchmark_client_public_ip.value' "${TF_OUTPUT_JSON}")"
+BROKER_PUBLIC_IPS="$(jq -r '.broker_public_ips.value[]' "${TF_OUTPUT_JSON}")"
+BROKER_PRIVATE_IPS="$(jq -r '.broker_private_ips.value[]' "${TF_OUTPUT_JSON}")"
+CLIENT_PUBLIC_IP="$(jq -r '.benchmark_client_public_ip.value' "${TF_OUTPUT_JSON}")"
+CLIENT_PRIVATE_IP="$(jq -r '.benchmark_client_private_ip.value' "${TF_OUTPUT_JSON}")"
 TEMP_INVENTORY="$(mktemp "${OUTPUT_DIR}/inventory.XXXXXX.env")"
 
 {
-  echo "BENCHMARK_CLIENT_IP=${CLIENT_IP}"
+  echo "BENCHMARK_CLIENT_IP=${CLIENT_PUBLIC_IP}"
+  echo "BENCHMARK_CLIENT_PUBLIC_IP=${CLIENT_PUBLIC_IP}"
+  echo "BENCHMARK_CLIENT_PRIVATE_IP=${CLIENT_PRIVATE_IP}"
   i=1
   while IFS= read -r ip; do
     echo "BROKER_${i}_IP=${ip}"
+    echo "BROKER_${i}_PUBLIC_IP=${ip}"
     i=$((i + 1))
-  done <<< "${BROKER_IPS}"
+  done <<< "${BROKER_PUBLIC_IPS}"
+  i=1
+  while IFS= read -r ip; do
+    echo "BROKER_${i}_PRIVATE_IP=${ip}"
+    i=$((i + 1))
+  done <<< "${BROKER_PRIVATE_IPS}"
 } > "${TEMP_INVENTORY}"
 
 mv "${TEMP_INVENTORY}" "${INVENTORY_FILE}"
