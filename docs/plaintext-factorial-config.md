@@ -148,11 +148,63 @@ Generated plan path:
 
 Each line is one concrete benchmark run configuration. The generated plan contains 972 runs for each valid deployment/durability combination.
 
-Important implementation constraints:
+Current implementation status:
 
-1. `broker_count=5` requires a five-broker environment or a provisioning step that can change the active broker set.
-2. `producer_count=6` and `producer_count=12` require true concurrent producer execution; recording those values without launching multiple producers would invalidate the results.
-3. The current live AWS cluster has three brokers, so only `broker_count=3` runs are executable without infrastructure changes.
+1. `broker_count=5` is provisioned in the dev AWS environment.
+2. `producer_count=6` and `producer_count=12` are supported by launching concurrent `kafka-producer-perf-test.sh` processes.
+3. The parser aggregates producer metrics by summing records/throughput, using a records-weighted average latency, and taking the maximum max-latency value.
+4. `compression_type` and `min_insync_replicas` are wired into the plaintext benchmark path.
+
+Current live broker addresses:
+
+| Broker | Public IP | Private Kafka IP |
+|---:|---|---|
+| 1 | `18.135.104.81` | `10.20.1.69` |
+| 2 | `13.135.128.31` | `10.20.1.238` |
+| 3 | `13.40.69.184` | `10.20.1.91` |
+| 4 | `35.178.239.59` | `10.20.1.118` |
+| 5 | `13.40.173.156` | `10.20.1.53` |
+
+The 5-broker KRaft cluster was bootstrapped fresh with:
+
+```text
+RESET_KAFKA_STORAGE=true
+```
+
+This reset remote Kafka broker log data only. Local benchmark results were not removed.
+
+## Concurrent Producer Smoke Test
+
+A direct smoke test validated the new concurrent producer path using:
+
+```text
+broker_count=5
+replication_factor=5
+min_insync_replicas=4
+producer_count=6
+message_size_bytes=1024
+num_records=12000
+target_messages_per_second=6000
+acks=all
+compression_type=none
+```
+
+Result directory:
+
+```text
+results/smoke/concurrent-producer-rf5/20260416T193230Z-plaintext-rf5-producers6-smoke/
+```
+
+Smoke result:
+
+| Metric | Value |
+|---|---:|
+| Records sent | 12000 |
+| Producer summaries aggregated | 6 |
+| Throughput records/s | 3009.11 |
+| Throughput MB/s | 2.95 |
+| Avg latency ms | 261.15 |
+| Max latency ms | 3935.00 |
 
 ## Baseline Used For Early Validation
 
