@@ -175,7 +175,9 @@ This reset remote Kafka broker log data only. Local benchmark results were not r
 
 ## Concurrent Producer Smoke Test
 
-A direct smoke test validated the new concurrent producer path using:
+Direct smoke tests validated the new concurrent producer path using RF=5 on the five-broker cluster.
+
+Six-producer smoke configuration:
 
 ```text
 broker_count=5
@@ -205,6 +207,37 @@ Smoke result:
 | Throughput MB/s | 2.95 |
 | Avg latency ms | 261.15 |
 | Max latency ms | 3935.00 |
+
+Twelve-producer smoke configuration:
+
+```text
+broker_count=5
+replication_factor=5
+min_insync_replicas=4
+producer_count=12
+message_size_bytes=1024
+num_records=12000
+target_messages_per_second=12000
+acks=all
+compression_type=none
+```
+
+Result directory:
+
+```text
+results/smoke/concurrent-producer-rf5/20260416T194000Z-plaintext-rf5-producers12-smoke/
+```
+
+Smoke result:
+
+| Metric | Value |
+|---|---:|
+| Records sent | 12000 |
+| Producer summaries aggregated | 12 |
+| Throughput records/s | 1504.56 |
+| Throughput MB/s | 1.46 |
+| Avg latency ms | 570.86 |
+| Max latency ms | 7488.00 |
 
 ## Baseline Used For Early Validation
 
