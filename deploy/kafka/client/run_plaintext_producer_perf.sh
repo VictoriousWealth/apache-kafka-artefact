@@ -9,6 +9,7 @@ RECORD_SIZE="${RECORD_SIZE:-1024}"
 THROUGHPUT="${THROUGHPUT:--1}"
 PARTITIONS="${PARTITIONS:-6}"
 REPLICATION_FACTOR="${REPLICATION_FACTOR:-3}"
+MIN_INSYNC_REPLICAS="${MIN_INSYNC_REPLICAS:-2}"
 BROKER_COUNT="${BROKER_COUNT:-3}"
 BASELINE_NAME="${BASELINE_NAME:-plaintext-default}"
 SWEEP_NAME="${SWEEP_NAME:-ad-hoc-sweep}"
@@ -22,6 +23,7 @@ CONSUMER_COUNT="${CONSUMER_COUNT:-1}"
 BATCH_SIZE="${BATCH_SIZE:-16384}"
 LINGER_MS="${LINGER_MS:-5}"
 ACKS="${ACKS:-all}"
+COMPRESSION_TYPE="${COMPRESSION_TYPE:-none}"
 RESULT_ROOT="${RESULT_ROOT:-/var/lib/kafka-client/results}"
 RUN_ID="${RUN_ID:-$(date -u +"%Y%m%dT%H%M%SZ")-plaintext-producer}"
 DELETE_TOPIC_AFTER_RUN="${DELETE_TOPIC_AFTER_RUN:-true}"
@@ -62,6 +64,7 @@ mkdir -p "${RUN_DIR}"
   --topic "${RUN_TOPIC}" \
   --partitions "${PARTITIONS}" \
   --replication-factor "${REPLICATION_FACTOR}" \
+  --config "min.insync.replicas=${MIN_INSYNC_REPLICAS}" \
   > "${TOPIC_OUTPUT}" 2>&1
 
 set +e
@@ -76,6 +79,7 @@ set +e
   "batch.size=${BATCH_SIZE}" \
   "linger.ms=${LINGER_MS}" \
   "acks=${ACKS}" \
+  "compression.type=${COMPRESSION_TYPE}" \
   > "${RAW_OUTPUT}" 2>&1
 PRODUCER_EXIT_CODE=$?
 set -e
@@ -111,11 +115,13 @@ cat > "${TEMP_METADATA}" <<EOF
   "throughput_limit": ${THROUGHPUT},
   "partitions": ${PARTITIONS},
   "replication_factor": ${REPLICATION_FACTOR},
+  "min_insync_replicas": ${MIN_INSYNC_REPLICAS},
   "producer_count": ${PRODUCER_COUNT},
   "consumer_count": ${CONSUMER_COUNT},
   "batch_size": ${BATCH_SIZE},
   "linger_ms": ${LINGER_MS},
   "acks": "${ACKS}",
+  "compression_type": "${COMPRESSION_TYPE}",
   "raw_output": "${RAW_OUTPUT}"
 }
 EOF
