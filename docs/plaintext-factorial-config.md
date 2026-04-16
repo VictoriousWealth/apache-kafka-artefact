@@ -4,7 +4,7 @@
 
 This document records the proposed plaintext-only experiment matrix before extending the same configuration space to TLS and mTLS. The aim is to preserve the full set of values under consideration while making the run count and Kafka validity constraints explicit.
 
-This is not yet the default executable sweep. The current runner supports one-factor-at-a-time sweeps. Running this matrix requires either a factorial executor or a generated set of single-run configurations.
+This is the intended plaintext factorial sweep design. The current production runner still executes one-factor-at-a-time sweep files, so the full factorial design is represented as a separate machine-readable configuration until the factorial executor is added.
 
 ## Security Mode
 
@@ -17,6 +17,12 @@ security_mode = plaintext
 TLS and mTLS should reuse the same matrix only after the plaintext execution path is stable.
 
 ## Requested Parameter Values
+
+Machine-readable config:
+
+```text
+config/factorials/plaintext-requested-full.json
+```
 
 | Parameter | Values |
 |---|---|
@@ -112,13 +118,45 @@ At an estimated 2-5 minutes per run:
 
 This excludes broker reprovisioning, retries, failed runs, result inspection, and cost from idle infrastructure while debugging.
 
-## Recommended Plaintext Start
+## Execution Plan
 
-Use the requested matrix as the full design space, but start with a staged plaintext execution:
+Use the requested matrix as the full plaintext design space:
 
-1. Run a smoke set with the baseline workload across the four valid deployment/durability combinations.
-2. Run one-factor-at-a-time plaintext sweeps against the stable baseline.
-3. Use the strongest plaintext effects to choose a smaller security-comparison matrix for TLS and mTLS.
+```text
+config/factorials/plaintext-requested-full.json
+```
+
+Before running it end-to-end, generate a plan and verify the exact run count:
+
+```bash
+scripts/orchestration/generate_factorial_plan.sh \
+  config/factorials/plaintext-requested-full.json \
+  .orchestration/plaintext-requested-full-plan.jsonl
+```
+
+Expected output:
+
+```text
+3888 planned runs
+```
+
+Generated plan path:
+
+```text
+.orchestration/plaintext-requested-full-plan.jsonl
+```
+
+Each line is one concrete benchmark run configuration. The generated plan contains 972 runs for each valid deployment/durability combination.
+
+Important implementation constraints:
+
+1. `broker_count=5` requires a five-broker environment or a provisioning step that can change the active broker set.
+2. `producer_count=6` and `producer_count=12` require true concurrent producer execution; recording those values without launching multiple producers would invalidate the results.
+3. The current live AWS cluster has three brokers, so only `broker_count=3` runs are executable without infrastructure changes.
+
+## Baseline Used For Early Validation
+
+The following baseline is useful for smoke tests and partial validation, but it is not a replacement for the full requested factorial design:
 
 Recommended stable baseline:
 
@@ -138,7 +176,7 @@ Recommended stable baseline:
 }
 ```
 
-Recommended first plaintext sweeps:
+Early validation one-factor-at-a-time sweeps:
 
 | Sweep | Values | Runs with 3 trials |
 |---|---|---:|
@@ -155,7 +193,7 @@ Total first-pass one-factor-at-a-time plaintext runs:
 48 runs
 ```
 
-This produces usable plaintext evidence quickly while keeping the full factorial design documented for later selective expansion.
+These produce quick validation evidence while the full factorial executor is being implemented.
 
 ## Executable First-Pass Config Files
 
