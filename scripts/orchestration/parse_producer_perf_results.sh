@@ -31,7 +31,21 @@ if [[ ! -f "${METADATA_JSON}" ]]; then
   exit 1
 fi
 
-SUMMARY_LINES="$(grep -E 'records sent,.*records/sec' "${RAW_OUTPUT}" || true)"
+SUMMARY_LINES=""
+while IFS= read -r producer_log; do
+  producer_summary="$(grep -E 'records sent,.*records/sec' "${producer_log}" | tail -n 1 || true)"
+  if [[ -n "${producer_summary}" ]]; then
+    if [[ -n "${SUMMARY_LINES}" ]]; then
+      SUMMARY_LINES+=$'\n'
+    fi
+    SUMMARY_LINES+="${producer_summary}"
+  fi
+done < <(find "${RUN_DIR}" -maxdepth 1 -type f -name 'producer-perf-[0-9]*.log' | sort)
+
+if [[ -z "${SUMMARY_LINES}" ]]; then
+  SUMMARY_LINES="$(grep -E 'records sent,.*records/sec' "${RAW_OUTPUT}" | tail -n 1 || true)"
+fi
+
 if [[ -z "${SUMMARY_LINES}" ]]; then
   echo "Unable to find producer performance summary line in ${RAW_OUTPUT}"
   exit 1
