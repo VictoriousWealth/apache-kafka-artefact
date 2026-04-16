@@ -1,0 +1,33 @@
+{
+  "name": "plaintext-requested-full-factorial",
+  "description": "Full plaintext factorial design using the requested Kafka deployment and producer workload parameters.",
+  "security_mode": "plaintext",
+  "trials": 3,
+  "fixed": {
+    "partition_count": 6,
+    "num_records": 100000,
+    "consumer_count": 1,
+    "linger_ms": 5,
+    "topic": "benchmark-topic"
+  },
+  "parameters": {
+    "broker_count": [3, 5],
+    "replication_factor": [3, 5],
+    "min_insync_replicas": [3, 4],
+    "message_size_bytes": [1024, 10240, 102400],
+    "target_messages_per_second": [1000, 5000, 10000],
+    "batch_size": [16384, 65536, 131072],
+    "acks": ["1", "all"],
+    "producer_count": [1, 6, 12],
+    "compression_type": ["none", "lz4"]
+  },
+  "validity_rules": [
+    "replication_factor <= broker_count",
+    "min_insync_replicas <= replication_factor"
+  ],
+  "implementation_notes": [
+    "broker_count changes require provisioning or selecting active brokers; the current live cluster has 3 brokers.",
+    "producer_count requires true concurrent producer execution before values above 1 are valid dissertation evidence.",
+    "compression_type and min_insync_replicas are wired into the current plaintext benchmark path."
+  ]
+}
