@@ -183,3 +183,45 @@ config/sweeps/plaintext-requested/producer_count.pending.json
 ```
 
 The producer-count sweep is deliberately marked pending because the current benchmark runner does not yet launch multiple producer processes. Recording `producer_count=6` or `producer_count=12` without actually running concurrent producers would create invalid dissertation evidence.
+
+## First Executed Plaintext Result Set
+
+The first requested-baseline plaintext sweep executed was:
+
+```text
+config/sweeps/plaintext-requested/message_size_bytes.json
+```
+
+Result directory:
+
+```text
+results/plaintext-requested/plaintext-requested-message-size-bytes/
+```
+
+Run count:
+
+```text
+9 runs = 3 message sizes x 3 trials
+```
+
+Baseline settings for this result set:
+
+```text
+broker_count=3
+replication_factor=3
+min_insync_replicas=3
+partition_count=6
+target_messages_per_second=5000
+batch_size=65536
+acks=all
+producer_count=1
+compression_type=none
+```
+
+Grouped mean results:
+
+| `message_size_bytes` | Throughput records/s | Throughput MB/s | Avg latency ms | Max latency ms |
+|---:|---:|---:|---:|---:|
+| 1024 | 4990.68 | 4.87 | 7.04 | 545.33 |
+| 10240 | 4990.77 | 48.74 | 25.82 | 564.00 |
+| 102400 | 1212.96 | 118.45 | 228.32 | 1325.67 |
