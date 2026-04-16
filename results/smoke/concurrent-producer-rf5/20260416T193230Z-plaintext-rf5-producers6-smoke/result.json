@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "run_id": "20260416T193230Z-plaintext-rf5-producers6-smoke",
+  "security_mode": "plaintext",
+  "baseline_name": "plaintext-five-broker-smoke",
+  "sweep_name": "concurrent-producer-smoke",
+  "sweep_variable": "producer_count",
+  "sweep_value": "6",
+  "trial_index": 1,
+  "trial_count": 1,
+  "topic": "benchmark-topic-20260416T193230Z-plaintext-rf5-producers6-smoke",
+  "cluster": {
+    "bootstrap_servers": "10.20.1.69:9092,10.20.1.238:9092,10.20.1.91:9092,10.20.1.118:9092,10.20.1.53:9092",
+    "broker_count": 5,
+    "partitions": 6,
+    "replication_factor": 5,
+    "min_insync_replicas": 4
+  },
+  "run_config": {
+    "num_records": 12000,
+    "record_size_bytes": 1024,
+    "throughput_limit_records_per_sec": 6000,
+    "producer_count": 6,
+    "consumer_count": 1,
+    "batch_size": 65536,
+    "linger_ms": 5,
+    "acks": "all",
+    "compression_type": "none"
+  },
+  "metrics": {
+    "records_sent": 12000,
+    "throughput_records_per_sec": 3009.114951,
+    "throughput_mb_per_sec": 2.95,
+    "avg_latency_ms": 261.15166666666664,
+    "max_latency_ms": 3935.0,
+    "producer_summaries": [
+      {
+        "summary_line": "2000 records sent, 459.664445 records/sec (0.45 MB/sec), 411.47 ms avg latency, 3935.00 ms max latency, 408 ms 50th, 765 ms 95th, 798 ms 99th, 814 ms 99.9th.",
+        "records_sent": 2000,
+        "throughput_records_per_sec": 459.664445,
+        "throughput_mb_per_sec": 0.45,
+        "avg_latency_ms": 411.47,
+        "max_latency_ms": 3935.0
+      },
+      {
+        "summary_line": "2000 records sent, 483.091787 records/sec (0.47 MB/sec), 166.01 ms avg latency, 3615.00 ms max latency, 138 ms 50th, 344 ms 95th, 433 ms 99th, 455 ms 99.9th.",
+        "records_sent": 2000,
+        "throughput_records_per_sec": 483.091787,
+        "throughput_mb_per_sec": 0.47,
+        "avg_latency_ms": 166.01,
+        "max_latency_ms": 3615.0
+      },
+      {
+        "summary_line": "2000 records sent, 528.680941 records/sec (0.52 MB/sec), 305.78 ms avg latency, 3168.00 ms max latency, 297 ms 50th, 455 ms 95th, 524 ms 99th, 542 ms 99.9th.",
+        "records_sent": 2000,
+        "throughput_records_per_sec": 528.680941,
+        "throughput_mb_per_sec": 0.52,
+        "avg_latency_ms": 305.78,
+        "max_latency_ms": 3168.0
+      },
+      {
+        "summary_line": "2000 records sent, 488.878025 records/sec (0.48 MB/sec), 281.01 ms avg latency, 3321.00 ms max latency, 285 ms 50th, 450 ms 95th, 473 ms 99th, 473 ms 99.9th.",
+        "records_sent": 2000,
+        "throughput_records_per_sec": 488.878025,
+        "throughput_mb_per_sec": 0.48,
+        "avg_latency_ms": 281.01,
+        "max_latency_ms": 3321.0
+      },
+      {
+        "summary_line": "2000 records sent, 540.540541 records/sec (0.53 MB/sec), 259.53 ms avg latency, 3053.00 ms max latency, 281 ms 50th, 369 ms 95th, 399 ms 99th, 417 ms 99.9th.",
+        "records_sent": 2000,
+        "throughput_records_per_sec": 540.540541,
+        "throughput_mb_per_sec": 0.53,
+        "avg_latency_ms": 259.53,
+        "max_latency_ms": 3053.0
+      },
+      {
+        "summary_line": "2000 records sent, 508.259212 records/sec (0.50 MB/sec), 143.11 ms avg latency, 3441.00 ms max latency, 150 ms 50th, 326 ms 95th, 396 ms 99th, 420 ms 99.9th.",
+        "records_sent": 2000,
+        "throughput_records_per_sec": 508.259212,
+        "throughput_mb_per_sec": 0.5,
+        "avg_latency_ms": 143.11,
+        "max_latency_ms": 3441.0
+      }
+    ]
+  },
+  "files": {
+    "raw_output": "/var/lib/kafka-client/results/20260416T193230Z-plaintext-rf5-producers6-smoke/producer-perf.log",
+    "metadata": "metadata.json"
+  },
+  "raw_summary_lines": [
+    "2000 records sent, 459.664445 records/sec (0.45 MB/sec), 411.47 ms avg latency, 3935.00 ms max latency, 408 ms 50th, 765 ms 95th, 798 ms 99th, 814 ms 99.9th.",
+    "2000 records sent, 483.091787 records/sec (0.47 MB/sec), 166.01 ms avg latency, 3615.00 ms max latency, 138 ms 50th, 344 ms 95th, 433 ms 99th, 455 ms 99.9th.",
+    "2000 records sent, 528.680941 records/sec (0.52 MB/sec), 305.78 ms avg latency, 3168.00 ms max latency, 297 ms 50th, 455 ms 95th, 524 ms 99th, 542 ms 99.9th.",
+    "2000 records sent, 488.878025 records/sec (0.48 MB/sec), 281.01 ms avg latency, 3321.00 ms max latency, 285 ms 50th, 450 ms 95th, 473 ms 99th, 473 ms 99.9th.",
+    "2000 records sent, 540.540541 records/sec (0.53 MB/sec), 259.53 ms avg latency, 3053.00 ms max latency, 281 ms 50th, 369 ms 95th, 399 ms 99th, 417 ms 99.9th.",
+    "2000 records sent, 508.259212 records/sec (0.50 MB/sec), 143.11 ms avg latency, 3441.00 ms max latency, 150 ms 50th, 326 ms 95th, 396 ms 99th, 420 ms 99.9th."
+  ]
+}
