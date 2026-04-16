@@ -16,6 +16,7 @@ SSH_OPTS=()
 TEMP_CLUSTER_ID=""
 MAX_RETRIES="${MAX_RETRIES:-3}"
 RETRY_SLEEP_SECONDS="${RETRY_SLEEP_SECONDS:-5}"
+RESET_KAFKA_STORAGE="${RESET_KAFKA_STORAGE:-false}"
 
 cleanup() {
   if [[ -n "${TEMP_CLUSTER_ID}" && -f "${TEMP_CLUSTER_ID}" ]]; then
@@ -104,6 +105,11 @@ wait_for_kafka_api() {
   return 1
 }
 
+reset_kafka_storage() {
+  local host="$1"
+  remote_ssh "${host}" "sudo systemctl stop kafka >/dev/null 2>&1 || true; sudo mkdir -p /var/lib/kafka/data; sudo find /var/lib/kafka/data -mindepth 1 -maxdepth 1 -exec rm -rf {} +; sudo chown -R kafka:kafka /var/lib/kafka/data"
+}
+
 for i in "${!BROKER_PUBLIC_IPS[@]}"; do
   HOST="${BROKER_PUBLIC_IPS[$i]}"
 
@@ -132,12 +138,32 @@ for i in "${!BROKER_PUBLIC_IPS[@]}"; do
   KAFKA_HOST="${BROKER_PRIVATE_IPS[$i]}"
 
   log "Configuring broker ${NODE_ID} at ${HOST}"
+  if [[ "${RESET_KAFKA_STORAGE}" == "true" ]]; then
+    log "Resetting Kafka storage on broker ${NODE_ID}"
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" reset_kafka_storage "${HOST}"
+  fi
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_scp_to "${HOST}" "${OUTPUT_DIR}/cluster.id"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 -o kafka -g kafka ${REMOTE_DIR}/cluster.id /etc/kafka/cluster.id"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" \
     "sudo bash ${REMOTE_DIR}/configure_kafka_plaintext.sh ${NODE_ID} '${CONTROLLER_QUORUM_VOTERS}' ${KAFKA_HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/create_systemd_service.sh"
+done
+
+for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+  NODE_ID=$((i + 1))
+  HOST="${BROKER_PUBLIC_IPS[$i]}"
+  KAFKA_HOST="${BROKER_PRIVATE_IPS[$i]}"
+
+  log "Restarting broker ${NODE_ID} at ${HOST}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo systemctl restart kafka"
+  printf 'CONFIGURED=true\nNODE_ID=%s\nHOST=%s\nKAFKA_HOST=%s\n' "${NODE_ID}" "${HOST}" "${KAFKA_HOST}" > "${OUTPUT_DIR}/broker-${NODE_ID}.status"
+done
+
+for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+  NODE_ID=$((i + 1))
+  HOST="${BROKER_PUBLIC_IPS[$i]}"
+  KAFKA_HOST="${BROKER_PRIVATE_IPS[$i]}"
+
   if ! wait_for_kafka_service "${HOST}"; then
     log "Kafka service failed health check on ${HOST}"
     exit 1
