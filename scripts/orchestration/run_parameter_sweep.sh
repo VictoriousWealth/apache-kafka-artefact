@@ -63,12 +63,13 @@ run_single_value() {
   local config_json
   config_json="$(jq --arg variable "${SWEEP_VARIABLE}" --argjson value "$(jq -cn --arg raw "${sweep_value}" '$raw | fromjson? // $raw')" '.[$variable] = $value' "${BASELINE_FILE}")"
 
-  local security_mode topic broker_count partition_count replication_factor message_size_bytes num_records target_messages_per_second producer_count consumer_count batch_size linger_ms acks
+  local security_mode topic broker_count partition_count replication_factor min_insync_replicas message_size_bytes num_records target_messages_per_second producer_count consumer_count batch_size linger_ms acks compression_type
   security_mode="$(jq -r '.security_mode' <<< "${config_json}")"
   topic="$(jq -r '.topic' <<< "${config_json}")"
   broker_count="$(jq -r '.broker_count' <<< "${config_json}")"
   partition_count="$(jq -r '.partition_count' <<< "${config_json}")"
   replication_factor="$(jq -r '.replication_factor' <<< "${config_json}")"
+  min_insync_replicas="$(jq -r '.min_insync_replicas // 2' <<< "${config_json}")"
   message_size_bytes="$(jq -r '.message_size_bytes' <<< "${config_json}")"
   num_records="$(jq -r '.num_records' <<< "${config_json}")"
   target_messages_per_second="$(jq -r '.target_messages_per_second' <<< "${config_json}")"
@@ -77,6 +78,7 @@ run_single_value() {
   batch_size="$(jq -r '.batch_size' <<< "${config_json}")"
   linger_ms="$(jq -r '.linger_ms' <<< "${config_json}")"
   acks="$(jq -r '.acks' <<< "${config_json}")"
+  compression_type="$(jq -r '.compression_type // "none"' <<< "${config_json}")"
 
   if [[ "${security_mode}" != "plaintext" ]]; then
     echo "Sweep value ${sweep_value} resolves to security_mode=${security_mode}, which is not yet implemented."
@@ -87,7 +89,7 @@ run_single_value() {
 
   log "Running sweep ${SWEEP_NAME}: ${SWEEP_VARIABLE}=${sweep_value}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
-    "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${BASELINE_NAME}' SWEEP_NAME='${SWEEP_NAME}' SWEEP_VARIABLE='${SWEEP_VARIABLE}' SWEEP_VALUE='${sweep_value}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${TRIAL_COUNT}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
+    "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${BASELINE_NAME}' SWEEP_NAME='${SWEEP_NAME}' SWEEP_VARIABLE='${SWEEP_VARIABLE}' SWEEP_VALUE='${sweep_value}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${TRIAL_COUNT}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
 
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" scp "${SSH_OPTS[@]}" -r \
     "${SSH_USER}@${BENCHMARK_CLIENT_IP}:${REMOTE_RESULTS_DIR}/${run_id}" "${LOCAL_RESULTS_DIR}/${result_subdir}/"
