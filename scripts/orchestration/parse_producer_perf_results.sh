@@ -75,7 +75,8 @@ jq \
       bootstrap_servers: .bootstrap_servers,
       broker_count: .broker_count,
       partitions: .partitions,
-      replication_factor: .replication_factor
+      replication_factor: .replication_factor,
+      min_insync_replicas: (.min_insync_replicas // null)
     },
     run_config: {
       num_records: .num_records,
@@ -85,7 +86,8 @@ jq \
       consumer_count: .consumer_count,
       batch_size: .batch_size,
       linger_ms: .linger_ms,
-      acks: .acks
+      acks: .acks,
+      compression_type: (.compression_type // "none")
     },
     metrics: {
       records_sent: $parsed_metrics.records_sent,
