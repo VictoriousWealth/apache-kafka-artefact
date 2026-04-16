@@ -31,16 +31,16 @@ if [[ ! -f "${METADATA_JSON}" ]]; then
   exit 1
 fi
 
-SUMMARY_LINE="$(grep -E 'records sent,.*records/sec' "${RAW_OUTPUT}" | tail -n 1 || true)"
-if [[ -z "${SUMMARY_LINE}" ]]; then
+SUMMARY_LINES="$(grep -E 'records sent,.*records/sec' "${RAW_OUTPUT}" || true)"
+if [[ -z "${SUMMARY_LINES}" ]]; then
   echo "Unable to find producer performance summary line in ${RAW_OUTPUT}"
   exit 1
 fi
 
 PARSED_METRICS="$(
-  SUMMARY_LINE="${SUMMARY_LINE}" python3 - <<'PY'
-import os, re, json, sys
-line = os.environ["SUMMARY_LINE"]
+  SUMMARY_LINES="${SUMMARY_LINES}" python3 - <<'PY'
+import os, re, json
+lines = [line for line in os.environ["SUMMARY_LINES"].splitlines() if line.strip()]
 patterns = {
     "records_sent": r"^\s*([0-9]+)\s+records sent",
     "throughput_records_per_sec": r",\s*([0-9.]+)\s+records/sec",
@@ -48,17 +48,36 @@ patterns = {
     "avg_latency_ms": r",\s*([0-9.]+)\s+ms avg latency",
     "max_latency_ms": r",\s*([0-9.]+)\s+ms max latency",
 }
-data = {}
-for key, pattern in patterns.items():
-    match = re.search(pattern, line)
-    data[key] = float(match.group(1)) if match and "." in match.group(1) else (int(match.group(1)) if match else None)
-print(json.dumps(data))
+per_producer = []
+for line in lines:
+    data = {"summary_line": line}
+    for key, pattern in patterns.items():
+        match = re.search(pattern, line)
+        data[key] = float(match.group(1)) if match and "." in match.group(1) else (int(match.group(1)) if match else None)
+    per_producer.append(data)
+
+records_sent = sum(item["records_sent"] or 0 for item in per_producer)
+throughput_records_per_sec = sum(item["throughput_records_per_sec"] or 0 for item in per_producer)
+throughput_mb_per_sec = sum(item["throughput_mb_per_sec"] or 0 for item in per_producer)
+latency_weight = sum(item["records_sent"] or 0 for item in per_producer if item["avg_latency_ms"] is not None)
+avg_latency_ms = None
+if latency_weight:
+    avg_latency_ms = sum((item["avg_latency_ms"] or 0) * (item["records_sent"] or 0) for item in per_producer) / latency_weight
+max_values = [item["max_latency_ms"] for item in per_producer if item["max_latency_ms"] is not None]
+print(json.dumps({
+    "records_sent": records_sent,
+    "throughput_records_per_sec": throughput_records_per_sec,
+    "throughput_mb_per_sec": throughput_mb_per_sec,
+    "avg_latency_ms": avg_latency_ms,
+    "max_latency_ms": max(max_values) if max_values else None,
+    "producer_summaries": per_producer,
+}))
 PY
 )"
 
 TEMP_RESULT="$(mktemp "${RUN_DIR}/result.XXXXXX.json")"
 jq \
-  --arg summary_line "${SUMMARY_LINE}" \
+  --arg summary_lines "${SUMMARY_LINES}" \
   --argjson parsed_metrics "${PARSED_METRICS}" \
   '{
     schema_version: "1.0",
@@ -94,13 +113,14 @@ jq \
       throughput_records_per_sec: $parsed_metrics.throughput_records_per_sec,
       throughput_mb_per_sec: $parsed_metrics.throughput_mb_per_sec,
       avg_latency_ms: $parsed_metrics.avg_latency_ms,
-      max_latency_ms: $parsed_metrics.max_latency_ms
+      max_latency_ms: $parsed_metrics.max_latency_ms,
+      producer_summaries: $parsed_metrics.producer_summaries
     },
     files: {
       raw_output: .raw_output,
       metadata: "metadata.json"
     },
-    raw_summary_line: $summary_line
+    raw_summary_lines: ($summary_lines | split("\n"))
   }' \
   "${METADATA_JSON}" > "${TEMP_RESULT}"
 
