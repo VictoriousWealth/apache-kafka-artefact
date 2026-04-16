@@ -40,6 +40,8 @@ TOPIC_DELETE_OUTPUT="${RUN_DIR}/topic-delete.log"
 TEMP_METADATA=""
 RUN_TOPIC="${TOPIC}-${RUN_ID}"
 PRODUCER_EXIT_CODE=0
+PRODUCER_PIDS=()
+PRODUCER_LOGS=()
 
 cleanup() {
   if [[ -n "${TEMP_METADATA}" && -f "${TEMP_METADATA}" ]]; then
@@ -68,20 +70,61 @@ mkdir -p "${RUN_DIR}"
   > "${TOPIC_OUTPUT}" 2>&1
 
 set +e
-"${KAFKA_HOME}/bin/kafka-producer-perf-test.sh" \
-  --topic "${RUN_TOPIC}" \
-  --num-records "${NUM_RECORDS}" \
-  --record-size "${RECORD_SIZE}" \
-  --throughput "${THROUGHPUT}" \
-  --producer.config "${CLIENT_CONFIG}" \
-  --producer-props \
-  "bootstrap.servers=${BOOTSTRAP_SERVERS}" \
-  "batch.size=${BATCH_SIZE}" \
-  "linger.ms=${LINGER_MS}" \
-  "acks=${ACKS}" \
-  "compression.type=${COMPRESSION_TYPE}" \
-  > "${RAW_OUTPUT}" 2>&1
-PRODUCER_EXIT_CODE=$?
+for ((producer_index = 1; producer_index <= PRODUCER_COUNT; producer_index++)); do
+  producer_records=$((NUM_RECORDS / PRODUCER_COUNT))
+  if (( producer_index <= NUM_RECORDS % PRODUCER_COUNT )); then
+    producer_records=$((producer_records + 1))
+  fi
+
+  if [[ "${THROUGHPUT}" == "-1" ]]; then
+    producer_throughput="-1"
+  else
+    producer_throughput=$((THROUGHPUT / PRODUCER_COUNT))
+    if (( producer_index <= THROUGHPUT % PRODUCER_COUNT )); then
+      producer_throughput=$((producer_throughput + 1))
+    fi
+    if (( producer_throughput < 1 )); then
+      producer_throughput=1
+    fi
+  fi
+
+  producer_log="${RUN_DIR}/producer-perf-${producer_index}.log"
+  PRODUCER_LOGS+=("${producer_log}")
+  {
+    echo "producer_index=${producer_index}"
+    echo "producer_count=${PRODUCER_COUNT}"
+    echo "producer_records=${producer_records}"
+    echo "producer_throughput=${producer_throughput}"
+    "${KAFKA_HOME}/bin/kafka-producer-perf-test.sh" \
+      --topic "${RUN_TOPIC}" \
+      --num-records "${producer_records}" \
+      --record-size "${RECORD_SIZE}" \
+      --throughput "${producer_throughput}" \
+      --producer.config "${CLIENT_CONFIG}" \
+      --producer-props \
+      "bootstrap.servers=${BOOTSTRAP_SERVERS}" \
+      "batch.size=${BATCH_SIZE}" \
+      "linger.ms=${LINGER_MS}" \
+      "acks=${ACKS}" \
+      "compression.type=${COMPRESSION_TYPE}"
+  } > "${producer_log}" 2>&1 &
+  PRODUCER_PIDS+=("$!")
+done
+
+for producer_pid in "${PRODUCER_PIDS[@]}"; do
+  if ! wait "${producer_pid}"; then
+    PRODUCER_EXIT_CODE=1
+  fi
+done
+
+{
+  echo "run_id=${RUN_ID}"
+  echo "producer_count=${PRODUCER_COUNT}"
+  for producer_log in "${PRODUCER_LOGS[@]}"; do
+    echo "----- ${producer_log} -----"
+    cat "${producer_log}"
+  done
+} > "${RAW_OUTPUT}"
 set -e
 
 if [[ "${DELETE_TOPIC_AFTER_RUN}" == "true" ]]; then
@@ -122,6 +165,10 @@ cat > "${TEMP_METADATA}" <<EOF
   "linger_ms": ${LINGER_MS},
   "acks": "${ACKS}",
   "compression_type": "${COMPRESSION_TYPE}",
+  "producer_logs": [
+$(printf '    "%s"' "${PRODUCER_LOGS[0]}")
+$(for ((log_index = 1; log_index < ${#PRODUCER_LOGS[@]}; log_index++)); do printf ',\n    "%s"' "${PRODUCER_LOGS[$log_index]}"; done)
+  ],
   "raw_output": "${RAW_OUTPUT}"
 }
 EOF
