@@ -56,3 +56,11 @@ The dissertation does not need to include every run the framework can perform. I
 - the baseline security sweep
 - a justified subset of secondary sweeps
 - enough repetition to support a credible interpretation
+
+## Full Plaintext Design Space
+
+The larger plaintext-only factorial design is recorded separately in:
+
+- `docs/plaintext-factorial-config.md`
+
+That document captures the requested parameter values, invalid Kafka combinations, corrected run count, and recommended staged execution plan.
