@@ -1,0 +1,35 @@
+{
+  "name": "security-overhead-final-factorial",
+  "description": "Reduced final security-overhead campaign across plaintext, TLS, and mTLS using the selected Kafka deployment and producer workload parameters.",
+  "security_modes": ["plaintext", "tls", "mtls"],
+  "trials": 3,
+  "fixed": {
+    "partition_count": 6,
+    "num_records": 100000,
+    "consumer_count": 1,
+    "linger_ms": 5,
+    "topic": "benchmark-topic"
+  },
+  "parameters": {
+    "broker_count": [3, 5],
+    "replication_factor": [3, 5],
+    "min_insync_replicas": [3, 4],
+    "message_size_bytes": [1024, 10240, 102400],
+    "target_messages_per_second": [1000, 10000],
+    "batch_size": [16384, 131072],
+    "acks": ["1", "all"],
+    "producer_count": [1, 6, 12],
+    "compression_type": ["none", "lz4"]
+  },
+  "validity_rules": [
+    "replication_factor <= broker_count",
+    "min_insync_replicas <= replication_factor"
+  ],
+  "implementation_notes": [
+    "This is the reduced final campaign matrix: target_messages_per_second=5000 and batch_size=65536 are intentionally excluded.",
+    "The campaign contains 1728 runs per security mode and 5184 runs across plaintext, TLS, and mTLS.",
+    "broker_count changes require separate infrastructure phases; do not label a five-broker cluster as a three-broker run.",
+    "TLS and mTLS execution require their deployment modes to be implemented before non-plaintext rows can run.",
+    "Host CPU telemetry should be implemented before using this campaign for final dissertation evidence."
+  ]
+}
