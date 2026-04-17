@@ -386,8 +386,14 @@ run_single_config() {
   shift 9
   local trial_count="$1"
 
-  if [[ "${security_mode}" != "plaintext" ]]; then
-    echo "Only plaintext factorial execution is implemented. Found security_mode=${security_mode}."
+  local benchmark_bootstrap_servers="${BOOTSTRAP_SERVERS}"
+  local client_config="/etc/kafka/client/plaintext-client.properties"
+
+  if [[ "${security_mode}" == "tls" ]]; then
+    benchmark_bootstrap_servers="$(sed 's/:9092/:9094/g' <<< "${BOOTSTRAP_SERVERS}")"
+    client_config="/etc/kafka/client/tls-client.properties"
+  elif [[ "${security_mode}" != "plaintext" ]]; then
+    echo "Only plaintext and TLS factorial execution are implemented. Found security_mode=${security_mode}."
     return 1
   fi
 
@@ -395,7 +401,7 @@ run_single_config() {
 
   set +e
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
-    "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
+    "sudo BOOTSTRAP_SERVERS='${benchmark_bootstrap_servers}' CLIENT_CONFIG='${client_config}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
   local benchmark_exit_code=$?
   set -e
 
