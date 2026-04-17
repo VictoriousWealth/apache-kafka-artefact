@@ -20,6 +20,7 @@ MAX_RUNS="${MAX_RUNS:-0}"
 DRY_RUN="${DRY_RUN:-false}"
 ALLOW_CLUSTER_MISMATCH="${ALLOW_CLUSTER_MISMATCH:-false}"
 BROKER_COUNT_FILTER="${BROKER_COUNT_FILTER:-}"
+SECURITY_MODE_FILTER="${SECURITY_MODE_FILTER:-}"
 EXPORT_RESULTS="${EXPORT_RESULTS:-true}"
 AGGREGATE_RESULTS="${AGGREGATE_RESULTS:-true}"
 
@@ -158,6 +159,7 @@ plan_rows() {
     def safe: tostring | gsub("[ /:,\\\"]"; "_");
     . as $row |
     (
+      $row.run_id //
       "\($row.factorial_name)-b\($row.broker_count)-rf\($row.replication_factor)-isr\($row.min_insync_replicas)-msg\($row.message_size_bytes)-tps\($row.target_messages_per_second)-batch\($row.batch_size)-acks\($row.acks | safe)-prod\($row.producer_count)-comp\($row.compression_type | safe)-trial\($row.trial_index)"
     ) as $run_id |
     [
@@ -285,6 +287,9 @@ log "Plan rows: ${PLAN_RUN_COUNT}; result directory: ${RESULT_DIR}"
 if [[ -n "${BROKER_COUNT_FILTER}" ]]; then
   log "Applying broker_count filter: ${BROKER_COUNT_FILTER}"
 fi
+if [[ -n "${SECURITY_MODE_FILTER}" ]]; then
+  log "Applying security_mode filter: ${SECURITY_MODE_FILTER}"
+fi
 if [[ "${DRY_RUN}" == "true" ]]; then
   log "Dry-run mode enabled; no remote benchmarks will be executed."
 fi
@@ -298,6 +303,11 @@ while IFS=$'\t' read -r run_id factorial_name security_mode topic row_broker_cou
   processed_count=$((processed_count + 1))
 
   if [[ -n "${BROKER_COUNT_FILTER}" && "${row_broker_count}" != "${BROKER_COUNT_FILTER}" ]]; then
+    skipped_count=$((skipped_count + 1))
+    continue
+  fi
+
+  if [[ -n "${SECURITY_MODE_FILTER}" && "${security_mode}" != "${SECURITY_MODE_FILTER}" ]]; then
     skipped_count=$((skipped_count + 1))
     continue
   fi
