@@ -8,12 +8,9 @@ Implemented deployment modes:
 
 - `plaintext`: Kafka broker data traffic on `9092`.
 - `tls`: server-authenticated TLS broker data traffic on `9094`.
-
-Pending deployment mode:
-
 - `mtls`: mutual TLS with client-certificate authentication.
 
-The KRaft controller listener remains private and plaintext on `9093` in the current TLS implementation. The dissertation security comparison concerns Kafka data-plane client/broker and broker/broker traffic.
+The KRaft controller listener remains private and plaintext on `9093` in the current implementation. The dissertation security comparison concerns Kafka data-plane client/broker and broker/broker traffic.
 
 ## Bootstrap Scripts
 
@@ -30,7 +27,7 @@ The KRaft controller listener remains private and plaintext on `9093` in the cur
   Renders the plaintext broker config and formats storage.
 
 - `bootstrap/configure_kafka_tls.sh`
-  Renders the TLS broker config, validates TLS stores, and formats storage.
+  Renders the TLS or mTLS broker config, validates TLS stores, and formats storage.
 
 - `bootstrap/create_systemd_service.sh`
   Creates a `systemd` service for Kafka.
@@ -47,11 +44,16 @@ TLS:
 - `config/server.properties.tls.template`
 - `client/tls-client.properties.template`
 
+mTLS:
+
+- `config/server.properties.mtls.template`
+- `client/mtls-client.properties.template`
+
 Benchmark runner:
 
 - `client/run_plaintext_producer_perf.sh`
 
-The benchmark runner name is historical. It now accepts `SECURITY_MODE`, `CLIENT_CONFIG`, and `BOOTSTRAP_SERVERS`, so the same producer benchmark script can execute plaintext or TLS runs.
+The benchmark runner name is historical. It now accepts `SECURITY_MODE`, `CLIENT_CONFIG`, and `BOOTSTRAP_SERVERS`, so the same producer benchmark script can execute plaintext, TLS, or mTLS runs.
 
 ## TLS Asset Flow
 
@@ -67,6 +69,7 @@ Generated assets include:
 - one broker PKCS#12 keystore per broker
 - broker truststores
 - benchmark-client truststore
+- benchmark-client PKCS#12 keystore for mTLS client authentication
 - `.orchestration/tls/tls.env` containing the generated store password
 
 The `.orchestration` directory is ignored by git, so generated keys and truststores are not committed.
@@ -93,6 +96,17 @@ TLS:
 7. Install TLS client truststore/properties on the benchmark client.
 8. Verify Kafka API readiness over `SSL://<private-ip>:9094`.
 
+mTLS:
+
+1. Generate TLS assets, including the benchmark-client keystore.
+2. Install Kafka on each broker node if needed.
+3. Copy broker keystores/truststores to `/etc/kafka/tls`.
+4. Render mTLS `server.properties` per node with `ssl.client.auth=required`.
+5. Format storage.
+6. Create the `systemd` service and restart Kafka.
+7. Install mTLS client truststore, keystore, and client properties on the benchmark client.
+8. Verify Kafka API readiness over `SSL://<private-ip>:9094` using the client certificate.
+
 ## Notes
 
 The current scripts assume:
@@ -100,4 +114,4 @@ The current scripts assume:
 - Ubuntu-based EC2 instances.
 - root or sudo execution during bootstrap.
 - generated TLS materials are development/test artefacts, not production PKI.
-- mTLS will extend the TLS mode by adding client keystores and `ssl.client.auth=required`.
+- mTLS uses generated client keystores and `ssl.client.auth=required`; certificate rotation is not implemented yet.
