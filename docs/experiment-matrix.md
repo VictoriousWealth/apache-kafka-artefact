@@ -173,6 +173,5 @@ The dissertation should report:
 - completion and failure counts per phase
 - matched plaintext/TLS/mTLS throughput overhead
 - matched plaintext/TLS/mTLS latency overhead
-- host telemetry, especially CPU, once implemented
+- host telemetry, especially CPU
 - critical discussion of which parameters amplify or reduce security overhead
-
