@@ -14,6 +14,7 @@ Implemented:
 - Three-broker and five-broker Kafka KRaft cluster phases on EC2.
 - One EC2 benchmark client.
 - Plaintext Kafka deployment and readiness checks.
+- TLS Kafka deployment and readiness checks.
 - Parameter sweep execution from JSON configuration.
 - Factorial plan generation and resumable execution from JSONL configuration.
 - Broker-count phase preparation for correct 3-broker and 5-broker experiments.
@@ -26,9 +27,9 @@ Implemented:
 
 Not implemented yet:
 
-- TLS broker/client configuration.
 - mTLS broker/client configuration.
-- Certificate generation and rotation workflow.
+- mTLS certificate generation and client-authentication workflow.
+- Certificate rotation workflow.
 - Consumer-side workload measurement.
 
 ## Research Goal
@@ -94,7 +95,7 @@ scripts/orchestration/generate_factorial_plan.sh \
   .orchestration/security-overhead-final-plan.jsonl
 ```
 
-The current executor implements plaintext execution only. A plaintext five-broker phase can be run with:
+The current executor implements plaintext and TLS execution. A plaintext five-broker phase can be run with:
 
 ```bash
 SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
@@ -107,7 +108,16 @@ CHECKPOINT_FILE=.orchestration/security-overhead-final-plaintext-broker5.checkpo
 scripts/orchestration/run_factorial_plan.sh
 ```
 
-The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`. TLS and mTLS rows should not be executed until those deployment/client paths are implemented.
+The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`. mTLS rows should not be executed until that deployment/client path is implemented.
+
+TLS deployment is handled by:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+scripts/orchestration/deploy_tls_cluster.sh
+```
+
+TLS uses broker data traffic on `9094`. The current live AWS cluster was last deployed in TLS mode, so run plaintext phases only after redeploying the plaintext cluster.
 
 ## Parameter Sweep Configuration
 
@@ -225,6 +235,43 @@ Observed summary across the first 100 runs:
 
 Early interpretation: this is a valid pipeline and partial plaintext baseline. It shows stable throughput near the 1000 records/s target, while latency increases materially as producer concurrency rises from 1 to 6 and 12 producers. It is not yet enough to support final plaintext conclusions across all planned parameters because larger message sizes, higher throughput targets, RF=5, and minISR=4 are not yet covered in this partial result set.
 
+## Latest TLS Validation
+
+The first TLS smoke result set is:
+
+```text
+results/tls-smoke/tls-broker5-smoke/
+```
+
+Validated configuration:
+
+- 5 brokers.
+- TLS broker listener on `9094`.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages.
+- target throughput `1000 records/s`.
+- `batch_size=16384`.
+- `acks=1`.
+- `producer_count=1`.
+- `compression_type=none`.
+- host telemetry from benchmark client plus all five brokers.
+
+Smoke result:
+
+| Metric | Value |
+|---|---:|
+| Records sent | 100,000 |
+| Throughput records/s | 999.75 |
+| Throughput MB/s | 0.98 |
+| Avg latency ms | 6.96 |
+| Max latency ms | 1024.00 |
+| Telemetry host count | 6 |
+| Benchmark client mean CPU % | 12.30 |
+| Broker mean CPU % | 12.41 |
+| Broker max-CPU mean % | 53.99 |
+
 The earlier completed fixed one-factor message-size sweep contains 9 runs:
 
 - 3 message sizes: `1024`, `10240`, `102400` bytes.
@@ -298,8 +345,8 @@ Detailed supporting documentation:
 
 ## Next Development Steps
 
-1. Add TLS deployment mode.
-2. Add mTLS deployment mode.
-3. Run equivalent sweeps for plaintext, TLS, and mTLS.
+1. Add mTLS deployment mode.
+2. Run matched plaintext, TLS, and mTLS smoke subsets.
+3. Run equivalent final-campaign phases for plaintext, TLS, and mTLS.
 4. Add comparison exports across security modes.
 5. Add targeted consumer-side measurement if time allows.
