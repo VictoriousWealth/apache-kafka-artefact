@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document records the proposed plaintext-only experiment matrix before extending the same configuration space to TLS and mTLS. The aim is to preserve the full set of values under consideration while making the run count and Kafka validity constraints explicit.
+This document records the plaintext-only experiment matrix before extending the same configuration space to TLS and mTLS. The aim is to preserve the full set of values under consideration while making the run count, Kafka validity constraints, and current execution state explicit.
 
-This is the intended plaintext factorial sweep design. The current production runner still executes one-factor-at-a-time sweep files, so the full factorial design is represented as a separate machine-readable configuration until the factorial executor is added.
+This is the requested plaintext factorial sweep design. The factorial executor has been implemented and executes the generated JSONL plan with deterministic run IDs, checkpoint/resume support, broker-count filtering, and failure logging.
 
 ## Security Mode
 
@@ -155,6 +155,68 @@ scripts/orchestration/run_factorial_plan.sh
 ```
 
 The executor provides deterministic run IDs, checkpoint/resume support, broker-count filtering, max-run limits for smoke testing, dry-run mode, failure logging, aggregation, and export.
+
+## Current Execution State
+
+Current production result set:
+
+```text
+results/factorial/plaintext-requested-full-broker5/
+```
+
+Current checkpoint:
+
+```text
+.orchestration/plaintext-requested-full-broker5.checkpoint
+```
+
+As of the latest run:
+
+| Item | Count |
+|---|---:|
+| Checkpointed runs | 100 |
+| Started ledger rows | 100 |
+| Completed ledger rows | 100 |
+| Local `result.json` files | 100 |
+| Recorded failures | 0 |
+
+The first 100 completed rows are all from the five-broker plaintext phase:
+
+```text
+broker_count=5
+replication_factor=3
+min_insync_replicas=3
+partition_count=6
+message_size_bytes=1024
+target_messages_per_second=1000
+security_mode=plaintext
+```
+
+The varied parameters in these first 100 rows are:
+
+```text
+batch_size
+acks
+producer_count
+compression_type
+```
+
+Summary across the first 100 runs:
+
+| Metric | Value |
+|---|---:|
+| Total records sent | 10,000,000 |
+| Mean throughput records/s | 999.55 |
+| Min throughput records/s | 998.35 |
+| Max throughput records/s | 999.80 |
+| Mean avg latency ms | 24.18 |
+| Min avg latency ms | 3.77 |
+| Max avg latency ms | 81.55 |
+| Max observed max latency ms | 7950.00 |
+
+Interpretation:
+
+The first 100 rows are valid as a pipeline validation and partial plaintext baseline. They show that the cluster consistently reaches the 1000 records/s target under this low-message-size slice, while latency increases substantially when producer concurrency rises. They are not a complete plaintext evaluation because the result set does not yet cover larger message sizes, higher target throughput values, RF=5, minISR=4, or the three-broker phase.
 
 Validated executor smoke run:
 
@@ -348,7 +410,7 @@ Total first-pass one-factor-at-a-time plaintext runs:
 48 runs
 ```
 
-These produce quick validation evidence while the full factorial executor is being implemented.
+These produce quick validation evidence and remain useful for targeted checks, but the main plaintext factorial path now uses `run_factorial_plan.sh`.
 
 ## Executable First-Pass Config Files
 
@@ -369,13 +431,13 @@ config/sweeps/plaintext-requested/compression_type.json
 config/sweeps/plaintext-requested/min_insync_replicas.json
 ```
 
-Pending sweep:
+Legacy pending sweep:
 
 ```text
 config/sweeps/plaintext-requested/producer_count.pending.json
 ```
 
-The producer-count sweep is deliberately marked pending because the current benchmark runner does not yet launch multiple producer processes. Recording `producer_count=6` or `producer_count=12` without actually running concurrent producers would create invalid dissertation evidence.
+This file is retained as a historical marker from before concurrent producer execution was implemented. The current benchmark runner does launch multiple producer processes for `producer_count=6` and `producer_count=12`; use the factorial executor for current producer-count evidence.
 
 ## First Executed Plaintext Result Set
 
