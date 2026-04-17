@@ -126,7 +126,7 @@ Recommended phase structure:
 | 5 | `tls` | 3 | 432 |
 | 6 | `mtls` | 3 | 432 |
 
-The current executor can generate all rows, but only plaintext execution is implemented. TLS and mTLS rows must not be run until the corresponding deployment and client paths exist.
+The current executor can generate all rows. Plaintext and TLS execution are implemented; mTLS rows must not be run until the mTLS deployment and client paths exist.
 
 Example plaintext five-broker command:
 
