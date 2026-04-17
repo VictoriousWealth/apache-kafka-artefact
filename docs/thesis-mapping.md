@@ -14,13 +14,14 @@ The artefact supports this through:
 - multiple Kafka security configurations
 - automated experiment execution
 - structured result generation
+- resumable factorial benchmark execution for larger plaintext parameter spaces
 
 ### Quality of Process
 
 The artefact supports this through:
 
-- controlled one-factor-at-a-time methodology
-- repeatable benchmark baselines and sweeps
+- controlled one-factor-at-a-time methodology for early validation
+- repeatable benchmark baselines, sweeps, and selected factorial plans
 - explicit baseline and sweep definitions
 - traceable outputs and documentation
 
@@ -48,8 +49,8 @@ Addressed by:
 Addressed by:
 
 - throughput as the primary metric
-- controlled one-factor-at-a-time parameter sweeps
-- transparent baseline and sweep definitions
+- controlled parameter sweeps and explicitly documented factorial subsets
+- transparent baseline, sweep, and factorial definitions
 
 ### Data and Ethics Restrictions
 
@@ -87,6 +88,7 @@ This chapter should present:
 - throughput comparisons
 - latency comparisons
 - selected parameter sweeps
+- selected factorial slices where they add explanatory value
 - interpretation of observed trade-offs
 
 ### Chapter 5: Evaluation, Conclusions, and Further Work
