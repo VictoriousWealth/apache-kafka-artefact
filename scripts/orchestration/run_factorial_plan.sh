@@ -23,6 +23,8 @@ BROKER_COUNT_FILTER="${BROKER_COUNT_FILTER:-}"
 SECURITY_MODE_FILTER="${SECURITY_MODE_FILTER:-}"
 EXPORT_RESULTS="${EXPORT_RESULTS:-true}"
 AGGREGATE_RESULTS="${AGGREGATE_RESULTS:-true}"
+HOST_TELEMETRY_ENABLED="${HOST_TELEMETRY_ENABLED:-true}"
+HOST_TELEMETRY_INTERVAL_SECONDS="${HOST_TELEMETRY_INTERVAL_SECONDS:-1}"
 
 if [[ -z "${SSH_KEY_PATH}" ]]; then
   echo "Set SSH_KEY_PATH to your private key."
@@ -48,6 +50,20 @@ if [[ -z "${BOOTSTRAP_SERVERS:-}" ]]; then
   exit 1
 fi
 
+BROKER_PUBLIC_IPS=()
+BROKER_PRIVATE_IPS=()
+INDEX=1
+while true; do
+  VAR_NAME="BROKER_${INDEX}_IP"
+  if [[ -z "${!VAR_NAME:-}" ]]; then
+    break
+  fi
+  BROKER_PUBLIC_IPS+=("${!VAR_NAME}")
+  PRIVATE_VAR_NAME="BROKER_${INDEX}_PRIVATE_IP"
+  BROKER_PRIVATE_IPS+=("${!PRIVATE_VAR_NAME:-}")
+  INDEX=$((INDEX + 1))
+done
+
 if ! jq -e . "${FACTORIAL_PLAN_FILE}" >/dev/null 2>&1; then
   # jsonl is expected, so validate line-by-line instead.
   while IFS= read -r plan_line; do
@@ -70,6 +86,19 @@ mkdir -p "${RESULT_DIR}"
 
 remote_ssh() {
   ssh -n "${SSH_OPTS[@]}" "${SSH_USER}@${BENCHMARK_CLIENT_IP}" "$@"
+}
+
+host_ssh() {
+  local host="$1"
+  shift
+  ssh -n "${SSH_OPTS[@]}" "${SSH_USER}@${host}" "$@"
+}
+
+host_scp_from() {
+  local host="$1"
+  local remote_path="$2"
+  local local_path="$3"
+  scp "${SSH_OPTS[@]}" "${SSH_USER}@${host}:${remote_path}" "${local_path}"
 }
 
 append_jsonl_atomic() {
@@ -152,6 +181,100 @@ copy_result_back() {
   fi
   mv "${temp_result_dir}" "${RESULT_DIR}/${run_id}"
   rmdir "${temp_parent}"
+}
+
+telemetry_remote_base() {
+  local run_id="$1"
+  printf '/tmp/kafka-host-telemetry/%s' "${run_id}"
+}
+
+start_telemetry_on_host() {
+  local host="$1"
+  local role="$2"
+  local host_id="$3"
+  local output_path="$4"
+  local pid_path="$5"
+  local log_path="$6"
+
+  host_ssh "${host}" "command -v /usr/local/bin/collect_host_telemetry.sh >/dev/null"
+  host_ssh "${host}" "sudo mkdir -p '$(dirname "${output_path}")'; sudo rm -f '${output_path}' '${pid_path}' '${log_path}'; sudo sh -c 'nohup /usr/local/bin/collect_host_telemetry.sh --role \"${role}\" --host-id \"${host_id}\" --interval \"${HOST_TELEMETRY_INTERVAL_SECONDS}\" --output \"${output_path}\" > \"${log_path}\" 2>&1 & echo \$! > \"${pid_path}\"'"
+}
+
+stop_telemetry_on_host() {
+  local host="$1"
+  local pid_path="$2"
+
+  host_ssh "${host}" "if sudo test -f '${pid_path}'; then pid=\$(sudo cat '${pid_path}'); sudo kill -TERM \"\${pid}\" >/dev/null 2>&1 || true; sleep 2; sudo kill -KILL \"\${pid}\" >/dev/null 2>&1 || true; sudo rm -f '${pid_path}'; fi" || true
+}
+
+copy_broker_telemetry_back() {
+  local run_id="$1"
+  local telemetry_dir="${RESULT_DIR}/${run_id}/host-telemetry"
+  local remote_base
+
+  remote_base="$(telemetry_remote_base "${run_id}")"
+  mkdir -p "${telemetry_dir}"
+
+  for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+    local broker_index=$((i + 1))
+    local host="${BROKER_PUBLIC_IPS[$i]}"
+    local remote_file="${remote_base}/broker-${broker_index}.jsonl"
+    local local_file="${telemetry_dir}/broker-${broker_index}.jsonl"
+    if host_ssh "${host}" "sudo test -f '${remote_file}'"; then
+      run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" host_ssh "${host}" "sudo chmod a+r '${remote_file}'"
+      run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" host_scp_from "${host}" "${remote_file}" "${local_file}"
+    fi
+  done
+}
+
+start_host_telemetry() {
+  local run_id="$1"
+  local remote_run_dir="${REMOTE_RESULTS_DIR}/${run_id}"
+  local remote_base
+
+  if [[ "${HOST_TELEMETRY_ENABLED}" != "true" ]]; then
+    return 0
+  fi
+
+  remote_base="$(telemetry_remote_base "${run_id}")"
+  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" start_telemetry_on_host \
+    "${BENCHMARK_CLIENT_IP}" \
+    "benchmark_client" \
+    "benchmark-client" \
+    "${remote_run_dir}/host-telemetry/benchmark-client.jsonl" \
+    "${remote_run_dir}/host-telemetry/benchmark-client.pid" \
+    "${remote_run_dir}/host-telemetry/benchmark-client.log"
+
+  for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+    local broker_index=$((i + 1))
+    local host="${BROKER_PUBLIC_IPS[$i]}"
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" start_telemetry_on_host \
+      "${host}" \
+      "broker" \
+      "broker-${broker_index}" \
+      "${remote_base}/broker-${broker_index}.jsonl" \
+      "${remote_base}/broker-${broker_index}.pid" \
+      "${remote_base}/broker-${broker_index}.log"
+  done
+}
+
+stop_host_telemetry() {
+  local run_id="$1"
+  local remote_run_dir="${REMOTE_RESULTS_DIR}/${run_id}"
+  local remote_base
+
+  if [[ "${HOST_TELEMETRY_ENABLED}" != "true" ]]; then
+    return 0
+  fi
+
+  remote_base="$(telemetry_remote_base "${run_id}")"
+  stop_telemetry_on_host "${BENCHMARK_CLIENT_IP}" "${remote_run_dir}/host-telemetry/benchmark-client.pid"
+
+  for i in "${!BROKER_PUBLIC_IPS[@]}"; do
+    local broker_index=$((i + 1))
+    local host="${BROKER_PUBLIC_IPS[$i]}"
+    stop_telemetry_on_host "${host}" "${remote_base}/broker-${broker_index}.pid"
+  done
 }
 
 plan_rows() {
@@ -268,10 +391,24 @@ run_single_config() {
     return 1
   fi
 
+  start_host_telemetry "${run_id}"
+
+  set +e
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
     "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
+  local benchmark_exit_code=$?
+  set -e
+
+  stop_host_telemetry "${run_id}"
+
+  if [[ "${benchmark_exit_code}" -ne 0 ]]; then
+    return "${benchmark_exit_code}"
+  fi
 
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" copy_result_back "${run_id}"
+  if [[ "${HOST_TELEMETRY_ENABLED}" == "true" ]]; then
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" copy_broker_telemetry_back "${run_id}"
+  fi
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" "${SCRIPT_DIR}/parse_producer_perf_results.sh" "${RESULT_DIR}/${run_id}"
 }
 
