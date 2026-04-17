@@ -4,20 +4,23 @@
 
 The framework is designed to support controlled measurement of the performance impact of Kafka transport security mechanisms, especially TLS and mTLS.
 
-The methodology uses custom synthetic workloads instead of a standard benchmark suite. This is because the dissertation requires direct, controlled comparison of transport security modes under a small number of justified and transparent workload classes.
+The methodology uses custom synthetic workloads instead of a standard benchmark suite. This is because the dissertation requires direct, controlled comparison of transport security modes under justified and transparent workload classes.
 
 ## Method
 
-The artefact uses a one-factor-at-a-time parameter sweep methodology.
+The artefact supports two experiment styles:
 
-For each experiment:
+- one-factor-at-a-time sweeps for early validation and isolated parameter checks
+- selected factorial plans for the final security-overhead campaign
 
-- One selected variable is swept across a defined range of values
-- All other relevant variables are held constant by a baseline configuration
-- The workload is executed under repeatable conditions
-- The resulting metrics are recorded in a structured format
+For each run:
 
-This is intended to isolate causal effects and reduce confounding between security changes and unrelated system changes.
+- the complete Kafka and workload configuration is recorded
+- the workload is executed under repeatable conditions
+- producer performance metrics are recorded in a structured format
+- host telemetry is sampled during the run
+
+The final campaign uses matched configurations across plaintext, TLS, and mTLS so security overhead can be calculated from comparable runs rather than from unrelated benchmark conditions.
 
 ## Variable Model
 
@@ -45,8 +48,10 @@ This is intended to isolate causal effects and reduce confounding between securi
 
 - `throughput`
 - `latency`
-- `cpu_usage` if collected
-- `memory_usage` if collected
+- `cpu_usage`
+- `memory_usage`
+- `network_io`
+- `disk_io`
 
 ## Metrics
 
@@ -64,10 +69,14 @@ Possible reporting units:
 
 Latency is the main secondary metric because security overhead may affect queueing delay and end-to-end responsiveness.
 
-Optional host-level metrics:
+Host-level metrics:
 
 - CPU usage
 - memory usage
+- network RX/TX bytes
+- disk read/write sectors
+
+CPU usage is the most important host-level metric because the dissertation's theoretical argument links cryptographic processing overhead to utilisation-driven latency growth.
 
 ## Fairness Controls
 
@@ -117,7 +126,9 @@ The methodology should explicitly consider:
 - client-side bottlenecks masquerading as broker bottlenecks
 - unfair comparisons caused by changed Kafka settings outside the intended variable
 - certificate or handshake setup cost being mixed incorrectly with sustained data-plane throughput
+- missing telemetry samples on one or more hosts
+- telemetry overhead affecting benchmark results
 
 ## Reporting Position for the Dissertation
 
-The dissertation should describe the artefact as a configurable parameter sweep framework, but the reported evaluation should be a selected, justified subset of the framework's available parameter space.
+The dissertation should describe the artefact as a configurable benchmark framework supporting sweeps and factorial campaign execution. The reported evaluation should use matched plaintext/TLS/mTLS configurations from the reduced final campaign and should discuss host telemetry alongside Kafka throughput and latency.
