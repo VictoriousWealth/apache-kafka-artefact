@@ -126,7 +126,7 @@ Recommended phase structure:
 | 5 | `tls` | 3 | 432 |
 | 6 | `mtls` | 3 | 432 |
 
-The current executor can generate all rows. Plaintext and TLS execution are implemented; mTLS rows must not be run until the mTLS deployment and client paths exist.
+The current executor can generate and execute all rows. Plaintext, TLS, and mTLS deployment/client paths are implemented. Each security mode must still be run only after deploying the matching cluster mode.
 
 Example plaintext five-broker command:
 
@@ -138,6 +138,19 @@ BROKER_COUNT_FILTER=5 \
 LOCAL_RESULTS_DIR=results/factorial-final \
 RESULT_SET_NAME=security-overhead-final-plaintext-broker5 \
 CHECKPOINT_FILE=.orchestration/security-overhead-final-plaintext-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+Example mTLS five-broker command:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
+SECURITY_MODE_FILTER=mtls \
+BROKER_COUNT_FILTER=5 \
+LOCAL_RESULTS_DIR=results/factorial-final \
+RESULT_SET_NAME=security-overhead-final-mtls-broker5 \
+CHECKPOINT_FILE=.orchestration/security-overhead-final-mtls-broker5.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
 
