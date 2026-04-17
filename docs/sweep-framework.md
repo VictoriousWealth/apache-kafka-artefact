@@ -73,3 +73,38 @@ The final campaign contains 5,184 planned rows across plaintext, TLS, and mTLS. 
 The current execution path supports plaintext, TLS, and mTLS producer performance runs over the factorial executor. The earlier one-factor sweep runner remains plaintext-only.
 
 All three security modes reuse the same baseline, sweep, and factorial model, so overhead calculations can compare matched rows rather than separate experiment designs.
+
+## Security Comparison Export
+
+Matched security comparison is performed after individual security-mode summaries have been generated.
+
+Input:
+
+```text
+summary.csv for plaintext
+summary.csv for tls
+summary.csv for mtls
+```
+
+Output:
+
+```text
+comparison.csv
+summary.csv
+table.tex
+throughput_overhead_pct.svg
+avg_latency_overhead_pct.svg
+max_latency_overhead_pct.svg
+client_cpu_overhead_pct.svg
+broker_cpu_overhead_pct.svg
+```
+
+The comparison key excludes `security_mode` and `run_id`. It uses the actual workload and deployment fields instead, including broker count, replication factor, min in-sync replicas, message size, throughput target, producer count, batch size, acknowledgements, compression type, and trial index.
+
+Percentage change is calculated as:
+
+```text
+(secure_mode_metric - plaintext_metric) / plaintext_metric * 100
+```
+
+For throughput, negative values mean the secure mode produced lower throughput than plaintext. For latency and CPU, positive values mean the secure mode incurred higher cost than plaintext.
