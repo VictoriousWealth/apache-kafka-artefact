@@ -25,28 +25,34 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 7. `prepare_tls_benchmark_client.sh`
    Install the TLS truststore and TLS client properties on the benchmark client node
 
-8. `deploy_plaintext_cluster.sh`
+8. `prepare_mtls_benchmark_client.sh`
+   Install the mTLS truststore, client keystore, and mTLS client properties on the benchmark client node
+
+9. `deploy_plaintext_cluster.sh`
    Run the full plaintext deployment flow with step checkpoints so interrupted runs can be resumed
 
-9. `deploy_tls_cluster.sh`
+10. `deploy_tls_cluster.sh`
    Run the TLS deployment flow with step checkpoints
 
-10. `prepare_broker_count_phase.sh`
+11. `deploy_mtls_cluster.sh`
+   Run the mTLS deployment flow with step checkpoints
+
+12. `prepare_broker_count_phase.sh`
    Converge the AWS/Kafka environment to a clean 3-broker or 5-broker plaintext phase before running matching factorial rows
 
-11. `run_parameter_sweep.sh`
+13. `run_parameter_sweep.sh`
    Execute a baseline-plus-sweep benchmark run set from the benchmark client and copy results back locally
 
-12. `run_factorial_plan.sh`
+14. `run_factorial_plan.sh`
    Execute a generated JSONL factorial plan with deterministic run IDs, checkpoint/resume support, broker-count filtering, security-mode filtering, host telemetry capture, failure logging, and optional dry-run/max-run controls
 
-13. `parse_producer_perf_results.sh`
+15. `parse_producer_perf_results.sh`
    Convert raw `producer-perf.log` output and host telemetry JSONL files into a standard structured result schema
 
-14. `aggregate_sweep_results.sh`
+16. `aggregate_sweep_results.sh`
    Aggregate all per-run `result.json` files under a sweep into `summary.json` and `summary.csv`
 
-15. `../analysis/export_sweep_artifacts.sh`
+17. `../analysis/export_sweep_artifacts.sh`
    Convert `summary.json` into dissertation-ready tables and SVG plots under an `export/` directory
 
 ## Broker-Count Phases
@@ -84,14 +90,19 @@ scripts/orchestration/generate_factorial_plan.sh \
   .orchestration/security-overhead-final-plan.jsonl
 ```
 
-This plan contains 5,184 rows across `plaintext`, `tls`, and `mtls`. The executor currently implements plaintext and TLS execution. Use `SECURITY_MODE_FILTER=tls` only after deploying the TLS cluster:
+This plan contains 5,184 rows across `plaintext`, `tls`, and `mtls`. The executor implements all three security modes. Use `SECURITY_MODE_FILTER=tls` only after deploying the TLS cluster:
 
 ```bash
 SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_tls_cluster.sh
 ```
 
-mTLS execution is still pending.
+Use `SECURITY_MODE_FILTER=mtls` only after deploying the mTLS cluster:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+scripts/orchestration/deploy_mtls_cluster.sh
+```
 
 Generate the plaintext factorial plan:
 
@@ -180,6 +191,19 @@ CHECKPOINT_FILE=.orchestration/security-overhead-final-tls-broker5.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
 
+mTLS five-broker smoke/phase command:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
+SECURITY_MODE_FILTER=mtls \
+BROKER_COUNT_FILTER=5 \
+LOCAL_RESULTS_DIR=results/factorial-final \
+RESULT_SET_NAME=security-overhead-final-mtls-broker5 \
+CHECKPOINT_FILE=.orchestration/security-overhead-final-mtls-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
 Factorial resumability files:
 
 ```text
@@ -243,7 +267,7 @@ The current scripts assume:
 - Terraform has already applied successfully
 - all broker nodes are Ubuntu-based and reachable over SSH
 - the SSH user is `ubuntu` unless overridden
-- the first target is plaintext-only deployment
+- the active Kafka deployment mode matches `SECURITY_MODE_FILTER`
 
 ## Hardening Features
 
