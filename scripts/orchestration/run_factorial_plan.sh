@@ -62,6 +62,8 @@ RESULT_SET_NAME="${RESULT_SET_NAME:-${FACTORIAL_NAME}}"
 RESULT_DIR="${LOCAL_RESULTS_DIR}/${RESULT_SET_NAME}"
 CHECKPOINT_FILE="${CHECKPOINT_FILE:-${OUTPUT_DIR}/${RESULT_SET_NAME}.checkpoint}"
 FAILED_FILE="${FAILED_FILE:-${RESULT_DIR}/failures.jsonl}"
+STARTED_FILE="${STARTED_FILE:-${RESULT_DIR}/started.jsonl}"
+COMPLETED_FILE="${COMPLETED_FILE:-${RESULT_DIR}/completed.jsonl}"
 
 mkdir -p "${RESULT_DIR}"
 
@@ -69,10 +71,86 @@ remote_ssh() {
   ssh -n "${SSH_OPTS[@]}" "${SSH_USER}@${BENCHMARK_CLIENT_IP}" "$@"
 }
 
+append_jsonl_atomic() {
+  local target_file="$1"
+  local json_line="$2"
+  local temp_file
+
+  mkdir -p "$(dirname "${target_file}")"
+  temp_file="$(mktemp "$(dirname "${target_file}")/$(basename "${target_file}").XXXXXX")"
+  if [[ -f "${target_file}" ]]; then
+    cat "${target_file}" > "${temp_file}"
+  fi
+  printf '%s\n' "${json_line}" >> "${temp_file}"
+  mv "${temp_file}" "${target_file}"
+}
+
+write_started() {
+  local run_id="$1"
+  local factorial_name="$2"
+  local broker_count="$3"
+  local replication_factor="$4"
+  local min_insync_replicas="$5"
+  local trial_index="$6"
+
+  append_jsonl_atomic "${STARTED_FILE}" "$(
+    jq -cn \
+      --arg run_id "${run_id}" \
+      --arg factorial_name "${factorial_name}" \
+      --argjson broker_count "${broker_count}" \
+      --argjson replication_factor "${replication_factor}" \
+      --argjson min_insync_replicas "${min_insync_replicas}" \
+      --argjson trial_index "${trial_index}" \
+      --arg started_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+      '{
+        run_id: $run_id,
+        factorial_name: $factorial_name,
+        broker_count: $broker_count,
+        replication_factor: $replication_factor,
+        min_insync_replicas: $min_insync_replicas,
+        trial_index: $trial_index,
+        started_at: $started_at
+      }'
+  )"
+}
+
+write_completed() {
+  local run_id="$1"
+  local result_json="$2"
+
+  append_jsonl_atomic "${COMPLETED_FILE}" "$(
+    jq -cn \
+      --arg run_id "${run_id}" \
+      --arg result_json "${result_json}" \
+      --arg completed_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+      '{
+        run_id: $run_id,
+        result_json: $result_json,
+        completed_at: $completed_at
+      }'
+  )"
+}
+
 copy_result_back() {
   local run_id="$1"
+  local temp_parent
+  local temp_result_dir
+
+  temp_parent="$(mktemp -d "${RESULT_DIR}/.copy-${run_id}.XXXXXX")"
   scp "${SSH_OPTS[@]}" -r \
-    "${SSH_USER}@${BENCHMARK_CLIENT_IP}:${REMOTE_RESULTS_DIR}/${run_id}" "${RESULT_DIR}/"
+    "${SSH_USER}@${BENCHMARK_CLIENT_IP}:${REMOTE_RESULTS_DIR}/${run_id}" "${temp_parent}/"
+
+  temp_result_dir="${temp_parent}/${run_id}"
+  if [[ ! -d "${temp_result_dir}" ]]; then
+    echo "Copied result directory not found at ${temp_result_dir}"
+    return 1
+  fi
+
+  if [[ -e "${RESULT_DIR}/${run_id}" ]]; then
+    mv "${RESULT_DIR}/${run_id}" "${RESULT_DIR}/.superseded-${run_id}-$(date -u +"%Y%m%dT%H%M%SZ")"
+  fi
+  mv "${temp_result_dir}" "${RESULT_DIR}/${run_id}"
+  rmdir "${temp_parent}"
 }
 
 plan_rows() {
@@ -107,29 +185,24 @@ plan_rows() {
 }
 
 write_failure() {
-  local run_id="$2"
-  local reason="$3"
-  local factorial_name="$4"
-  local security_mode="$5"
-  local broker_count="$6"
-  local replication_factor="$7"
-  local min_insync_replicas="$8"
-  local message_size_bytes="$9"
+  local run_id="$1"
+  local reason="$2"
+  local factorial_name="$3"
+  local security_mode="$4"
+  local broker_count="$5"
+  local replication_factor="$6"
+  local min_insync_replicas="$7"
+  local message_size_bytes="$8"
+  local target_messages_per_second="$9"
   shift 9
-  local target_messages_per_second="$1"
-  local batch_size="$2"
-  local acks="$3"
-  local producer_count="$4"
-  local compression_type="$5"
-  local trial_index="$6"
-  local temp_file
+  local batch_size="$1"
+  local acks="$2"
+  local producer_count="$3"
+  local compression_type="$4"
+  local trial_index="$5"
 
-  mkdir -p "$(dirname "${FAILED_FILE}")"
-  temp_file="$(mktemp "$(dirname "${FAILED_FILE}")/failures.XXXXXX.jsonl")"
-  if [[ -f "${FAILED_FILE}" ]]; then
-    cat "${FAILED_FILE}" > "${temp_file}"
-  fi
-  jq -cn \
+  append_jsonl_atomic "${FAILED_FILE}" "$(
+    jq -cn \
     --arg run_id "${run_id}" \
     --arg reason "${reason}" \
     --arg timestamp "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
@@ -161,8 +234,8 @@ write_failure() {
       trial_index: $trial_index,
       failure_reason: $reason,
       failed_at: $timestamp
-    }' >> "${temp_file}"
-  mv "${temp_file}" "${FAILED_FILE}"
+    }'
+  )"
 }
 
 run_single_config() {
@@ -196,7 +269,6 @@ run_single_config() {
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
     "sudo BOOTSTRAP_SERVERS='${BOOTSTRAP_SERVERS}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
 
-  rm -rf "${RESULT_DIR:?}/${run_id}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" copy_result_back "${run_id}"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" "${SCRIPT_DIR}/parse_producer_perf_results.sh" "${RESULT_DIR}/${run_id}"
 }
@@ -255,8 +327,10 @@ while IFS=$'\t' read -r run_id factorial_name security_mode topic row_broker_cou
     continue
   fi
 
+  write_started "${run_id}" "${factorial_name}" "${row_broker_count}" "${replication_factor}" "${min_insync_replicas}" "${trial_index}"
   if run_single_config "${run_id}" "${factorial_name}" "${security_mode}" "${topic}" "${row_broker_count}" "${partition_count}" "${replication_factor}" "${min_insync_replicas}" "${message_size_bytes}" "${num_records}" "${target_messages_per_second}" "${producer_count}" "${consumer_count}" "${batch_size}" "${linger_ms}" "${acks}" "${compression_type}" "${trial_index}" "${trial_count}"; then
     mark_checkpoint "${CHECKPOINT_FILE}" "${run_id}"
+    write_completed "${run_id}" "${RESULT_DIR}/${run_id}/result.json"
     executed_count=$((executed_count + 1))
   else
     write_failure "${run_id}" "benchmark execution failed" "${factorial_name}" "${security_mode}" "${row_broker_count}" "${replication_factor}" "${min_insync_replicas}" "${message_size_bytes}" "${target_messages_per_second}" "${batch_size}" "${acks}" "${producer_count}" "${compression_type}" "${trial_index}"
