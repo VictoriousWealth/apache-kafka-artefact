@@ -86,22 +86,28 @@ The workflow performs these stages:
 
 The deployment part is checkpointed, so interrupted deployment steps can be resumed. Benchmark runs create new run directories.
 
-For the larger plaintext factorial design, the current execution path is:
+For the reduced final security-overhead campaign, generate the plan with:
 
 ```bash
 scripts/orchestration/generate_factorial_plan.sh \
-  config/factorials/plaintext-requested-full.json \
-  .orchestration/plaintext-requested-full-plan.jsonl
+  config/factorials/security-overhead-final.json \
+  .orchestration/security-overhead-final-plan.jsonl
+```
 
+The current executor implements plaintext execution only. A plaintext five-broker phase can be run with:
+
+```bash
 SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
+SECURITY_MODE_FILTER=plaintext \
 BROKER_COUNT_FILTER=5 \
-LOCAL_RESULTS_DIR=results/factorial \
-RESULT_SET_NAME=plaintext-requested-full-broker5 \
-CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker5.checkpoint \
+LOCAL_RESULTS_DIR=results/factorial-final \
+RESULT_SET_NAME=security-overhead-final-plaintext-broker5 \
+CHECKPOINT_FILE=.orchestration/security-overhead-final-plaintext-broker5.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
 
-The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`.
+The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`. TLS and mTLS rows should not be executed until those deployment/client paths are implemented.
 
 ## Parameter Sweep Configuration
 
@@ -129,15 +135,21 @@ The currently validated full plaintext sweep is:
 
 This means the framework runs three trials for each message size while holding all other baseline settings fixed.
 
-The larger requested plaintext factorial design is documented in:
+The reduced final security-overhead factorial campaign is documented in:
 
 ```text
-docs/plaintext-factorial-config.md
-config/factorials/plaintext-requested-full.json
-.orchestration/plaintext-requested-full-plan.jsonl
+docs/experiment-matrix.md
+config/factorials/security-overhead-final.json
+.orchestration/security-overhead-final-plan.jsonl
 ```
 
-The generated valid plaintext factorial plan contains `3,888` runs after Kafka validity constraints are applied.
+The generated final campaign contains `5,184` runs after Kafka validity constraints are applied:
+
+- `1,728` plaintext runs.
+- `1,728` TLS runs.
+- `1,728` mTLS runs.
+
+The older plaintext-only requested matrix is retained in `docs/plaintext-factorial-config.md` and `config/factorials/plaintext-requested-full.json` as historical design context.
 
 ## Result Outputs
 
