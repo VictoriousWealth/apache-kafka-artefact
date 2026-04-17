@@ -41,11 +41,13 @@ remote_scp() {
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "mkdir -p ${REMOTE_DIR}"
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_scp \
   deploy/kafka/bootstrap/install_kafka_client.sh \
+  deploy/kafka/common/collect_host_telemetry.sh \
   deploy/kafka/client/plaintext-client.properties \
   deploy/kafka/client/run_plaintext_producer_perf.sh
 
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "sudo bash ${REMOTE_DIR}/install_kafka_client.sh"
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "sudo install -d -m 0755 /etc/kafka/client"
+run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "sudo install -m 0755 ${REMOTE_DIR}/collect_host_telemetry.sh /usr/local/bin/collect_host_telemetry.sh"
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "sudo install -m 0644 ${REMOTE_DIR}/plaintext-client.properties /etc/kafka/client/plaintext-client.properties"
 run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "sudo install -m 0755 ${REMOTE_DIR}/run_plaintext_producer_perf.sh /usr/local/bin/run_plaintext_producer_perf.sh"
 
