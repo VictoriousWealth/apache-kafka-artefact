@@ -11,6 +11,7 @@ RUN_DIR="$1"
 RAW_OUTPUT="${RUN_DIR}/producer-perf.log"
 METADATA_JSON="${RUN_DIR}/metadata.json"
 RESULT_JSON="${RUN_DIR}/result.json"
+TELEMETRY_DIR="${RUN_DIR}/host-telemetry"
 TEMP_RESULT=""
 
 cleanup() {
@@ -89,10 +90,85 @@ print(json.dumps({
 PY
 )"
 
+PARSED_TELEMETRY="$(
+  TELEMETRY_DIR="${TELEMETRY_DIR}" python3 - <<'PY'
+import glob
+import json
+import os
+
+telemetry_dir = os.environ["TELEMETRY_DIR"]
+
+def mean(values):
+    return sum(values) / len(values) if values else None
+
+def summarise_file(path):
+    samples = []
+    with open(path, "r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                samples.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    if not samples:
+        return None
+
+    def values(key):
+        return [sample[key] for sample in samples if isinstance(sample.get(key), (int, float))]
+
+    first = samples[0]
+    last = samples[-1]
+    cpu_values = values("cpu_percent")
+    memory_values = values("memory_used_percent")
+
+    return {
+        "role": first.get("role"),
+        "host_id": first.get("host_id"),
+        "sample_count": len(samples),
+        "started_at": first.get("timestamp"),
+        "ended_at": last.get("timestamp"),
+        "cpu_percent_mean": mean(cpu_values),
+        "cpu_percent_max": max(cpu_values) if cpu_values else None,
+        "memory_used_percent_mean": mean(memory_values),
+        "memory_used_percent_max": max(memory_values) if memory_values else None,
+        "network_rx_bytes_delta": (last.get("network_rx_bytes") - first.get("network_rx_bytes")) if isinstance(last.get("network_rx_bytes"), int) and isinstance(first.get("network_rx_bytes"), int) else None,
+        "network_tx_bytes_delta": (last.get("network_tx_bytes") - first.get("network_tx_bytes")) if isinstance(last.get("network_tx_bytes"), int) and isinstance(first.get("network_tx_bytes"), int) else None,
+        "disk_read_sectors_delta": (last.get("disk_read_sectors") - first.get("disk_read_sectors")) if isinstance(last.get("disk_read_sectors"), int) and isinstance(first.get("disk_read_sectors"), int) else None,
+        "disk_write_sectors_delta": (last.get("disk_write_sectors") - first.get("disk_write_sectors")) if isinstance(last.get("disk_write_sectors"), int) and isinstance(first.get("disk_write_sectors"), int) else None,
+        "source_file": os.path.basename(path),
+    }
+
+hosts = []
+if os.path.isdir(telemetry_dir):
+    for path in sorted(glob.glob(os.path.join(telemetry_dir, "*.jsonl"))):
+        summary = summarise_file(path)
+        if summary:
+            hosts.append(summary)
+
+broker_cpu = [host["cpu_percent_mean"] for host in hosts if host.get("role") == "broker" and host.get("cpu_percent_mean") is not None]
+client_cpu = [host["cpu_percent_mean"] for host in hosts if host.get("role") == "benchmark_client" and host.get("cpu_percent_mean") is not None]
+
+print(json.dumps({
+    "enabled": bool(hosts),
+    "sample_interval_seconds": None,
+    "host_count": len(hosts),
+    "hosts": hosts,
+    "broker_cpu_percent_mean": mean(broker_cpu),
+    "broker_cpu_percent_max_mean": mean([host["cpu_percent_max"] for host in hosts if host.get("role") == "broker" and host.get("cpu_percent_max") is not None]),
+    "benchmark_client_cpu_percent_mean": mean(client_cpu),
+    "source_directory": "host-telemetry" if hosts else None,
+}))
+PY
+)"
+
 TEMP_RESULT="$(mktemp "${RUN_DIR}/result.XXXXXX.json")"
 jq \
   --arg summary_lines "${SUMMARY_LINES}" \
   --argjson parsed_metrics "${PARSED_METRICS}" \
+  --argjson parsed_telemetry "${PARSED_TELEMETRY}" \
   '{
     schema_version: "1.0",
     run_id: .run_id,
@@ -130,6 +206,7 @@ jq \
       max_latency_ms: $parsed_metrics.max_latency_ms,
       producer_summaries: $parsed_metrics.producer_summaries
     },
+    host_telemetry: $parsed_telemetry,
     files: {
       raw_output: .raw_output,
       metadata: "metadata.json"
