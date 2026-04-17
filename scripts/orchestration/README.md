@@ -25,14 +25,66 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 7. `run_parameter_sweep.sh`
    Execute a baseline-plus-sweep benchmark run set from the benchmark client and copy results back locally
 
-8. `parse_producer_perf_results.sh`
+8. `run_factorial_plan.sh`
+   Execute a generated JSONL factorial plan with deterministic run IDs, checkpoint/resume support, broker-count filtering, failure logging, and optional dry-run/max-run controls
+
+9. `parse_producer_perf_results.sh`
    Convert raw `producer-perf.log` output into a standard structured result schema
 
-9. `aggregate_sweep_results.sh`
+10. `aggregate_sweep_results.sh`
    Aggregate all per-run `result.json` files under a sweep into `summary.json` and `summary.csv`
 
-10. `../analysis/export_sweep_artifacts.sh`
+11. `../analysis/export_sweep_artifacts.sh`
    Convert `summary.json` into dissertation-ready tables and SVG plots under an `export/` directory
+
+## Factorial Execution
+
+Generate the plaintext factorial plan:
+
+```bash
+scripts/orchestration/generate_factorial_plan.sh \
+  config/factorials/plaintext-requested-full.json \
+  .orchestration/plaintext-requested-full-plan.jsonl
+```
+
+Dry-run the first five rows for the active five-broker cluster:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+DRY_RUN=true \
+BROKER_COUNT_FILTER=5 \
+MAX_RUNS=5 \
+AGGREGATE_RESULTS=false \
+EXPORT_RESULTS=false \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+Run one real smoke row:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+BROKER_COUNT_FILTER=5 \
+MAX_RUNS=1 \
+AGGREGATE_RESULTS=false \
+EXPORT_RESULTS=false \
+LOCAL_RESULTS_DIR=results/factorial-smoke \
+RESULT_SET_NAME=executor-smoke \
+CHECKPOINT_FILE=.orchestration/executor-smoke.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+Run the five-broker portion of the plaintext plan:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+BROKER_COUNT_FILTER=5 \
+LOCAL_RESULTS_DIR=results/factorial \
+RESULT_SET_NAME=plaintext-requested-full-broker5 \
+CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+The executor skips rows whose `broker_count` does not match the active cluster unless `ALLOW_CLUSTER_MISMATCH=true` is set. Do not use `ALLOW_CLUSTER_MISMATCH=true` for dissertation evidence unless the methodology explicitly defines what that means.
 
 ## Requirements
 
@@ -56,5 +108,8 @@ The current scripts assume:
 - retry handling for transient command failures
 - atomic writes for generated local state files
 - resumable checkpoints for the top-level plaintext deployment flow
+- resumable checkpoints for factorial benchmark execution
+- deterministic factorial run IDs so reruns do not create duplicate logical runs
+- factorial failure logs under the result directory
 - broker service health checks after startup
 - Kafka API readiness checks after broker startup
