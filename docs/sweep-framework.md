@@ -6,6 +6,7 @@ The artefact is structured around three concepts:
 
 - `baseline`
 - `sweep`
+- `factorial plan`
 - `run`
 
 ## Baseline
@@ -54,8 +55,21 @@ This produces one resolved run where all baseline values remain fixed except `me
 
 If a sweep defines `trials`, multiple resolved runs are generated for the same sweep value so the framework can later aggregate mean, minimum, and maximum metrics across repeated trials.
 
+## Factorial Plan
+
+A factorial plan is a generated JSONL file where each line is one fully resolved benchmark run. It is used when more than one parameter is intentionally varied.
+
+Current plaintext factorial files:
+
+```text
+config/factorials/plaintext-requested-full.json
+.orchestration/plaintext-requested-full-plan.jsonl
+```
+
+The factorial executor records deterministic run IDs, started/completed ledgers, checkpoint state, and failure logs so long runs can be resumed after interruption.
+
 ## Current Implementation Boundary
 
-The current execution path supports plaintext producer performance runs over the sweep framework.
+The current execution path supports plaintext producer performance runs over both the sweep framework and the factorial executor.
 
-TLS and mTLS will later reuse the same baseline and sweep model rather than introducing a separate execution model.
+TLS and mTLS should later reuse the same baseline, sweep, and factorial model rather than introducing a separate execution model.
