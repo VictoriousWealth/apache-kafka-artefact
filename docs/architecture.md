@@ -173,4 +173,4 @@ This separation is necessary to keep the methodology academically defensible.
 - Deployment approach: `AWS EC2` provisioned with `Terraform`
 - Initial benchmark focus: throughput first, latency second
 - Initial comparison set: `plaintext`, `TLS`, `mTLS`
-- Initial methodology: one-factor-at-a-time parameter sweeps, with a justified subset of resolved runs reported in the dissertation
+- Methodology: one-factor-at-a-time sweeps for early validation, then selected factorial slices for the larger plaintext parameter space, with a justified subset of resolved runs reported in the dissertation
