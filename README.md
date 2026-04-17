@@ -1,6 +1,6 @@
 # Kafka Security Benchmarking Artefact
 
-This repository contains the dissertation artefact for measuring Apache Kafka performance under controlled security and workload configurations. The current implemented path provisions an AWS EC2 Kafka cluster, deploys a plaintext Kafka baseline, runs parameter sweeps and factorial benchmark plans, parses raw Kafka benchmark output into structured metrics, and exports dissertation-ready tables and plots.
+This repository contains the dissertation artefact for measuring Apache Kafka performance under controlled security and workload configurations. The current implemented path provisions an AWS EC2 Kafka cluster, deploys plaintext, TLS, or mTLS Kafka modes, runs parameter sweeps and factorial benchmark plans, parses raw Kafka benchmark output into structured metrics, and exports dissertation-ready tables and plots.
 
 The long-term artefact goal is:
 
@@ -15,6 +15,7 @@ Implemented:
 - One EC2 benchmark client.
 - Plaintext Kafka deployment and readiness checks.
 - TLS Kafka deployment and readiness checks.
+- mTLS Kafka deployment, client-certificate authentication, and readiness checks.
 - Parameter sweep execution from JSON configuration.
 - Factorial plan generation and resumable execution from JSONL configuration.
 - Broker-count phase preparation for correct 3-broker and 5-broker experiments.
@@ -27,8 +28,6 @@ Implemented:
 
 Not implemented yet:
 
-- mTLS broker/client configuration.
-- mTLS certificate generation and client-authentication workflow.
 - Certificate rotation workflow.
 - Consumer-side workload measurement.
 
@@ -95,7 +94,7 @@ scripts/orchestration/generate_factorial_plan.sh \
   .orchestration/security-overhead-final-plan.jsonl
 ```
 
-The current executor implements plaintext and TLS execution. A plaintext five-broker phase can be run with:
+The current executor implements plaintext, TLS, and mTLS execution. A plaintext five-broker phase can be run with:
 
 ```bash
 SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
@@ -108,7 +107,7 @@ CHECKPOINT_FILE=.orchestration/security-overhead-final-plaintext-broker5.checkpo
 scripts/orchestration/run_factorial_plan.sh
 ```
 
-The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`. mTLS rows should not be executed until that deployment/client path is implemented.
+The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`.
 
 TLS deployment is handled by:
 
@@ -117,7 +116,14 @@ SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_tls_cluster.sh
 ```
 
-TLS uses broker data traffic on `9094`. The current live AWS cluster was last deployed in TLS mode, so run plaintext phases only after redeploying the plaintext cluster.
+TLS and mTLS use broker data traffic on `9094`. mTLS deployment is handled by:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+scripts/orchestration/deploy_mtls_cluster.sh
+```
+
+The current live AWS cluster was last deployed in mTLS mode, so run plaintext or TLS phases only after redeploying the matching cluster mode.
 
 ## Parameter Sweep Configuration
 
@@ -272,6 +278,44 @@ Smoke result:
 | Broker mean CPU % | 12.41 |
 | Broker max-CPU mean % | 53.99 |
 
+## Latest mTLS Validation
+
+The first mTLS smoke result set is:
+
+```text
+results/mtls-smoke/mtls-broker5-smoke/
+```
+
+Validated configuration:
+
+- 5 brokers.
+- mTLS broker listener on `9094`.
+- client-certificate authentication required.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages.
+- target throughput `1000 records/s`.
+- `batch_size=16384`.
+- `acks=1`.
+- `producer_count=1`.
+- `compression_type=none`.
+- host telemetry from benchmark client plus all five brokers.
+
+Smoke result:
+
+| Metric | Value |
+|---|---:|
+| Records sent | 100,000 |
+| Throughput records/s | 999.60 |
+| Throughput MB/s | 0.98 |
+| Avg latency ms | 8.63 |
+| Max latency ms | 1173.00 |
+| Telemetry host count | 6 |
+| Benchmark client mean CPU % | 12.56 |
+| Broker mean CPU % | 12.22 |
+| Broker max-CPU mean % | 47.85 |
+
 The earlier completed fixed one-factor message-size sweep contains 9 runs:
 
 - 3 message sizes: `1024`, `10240`, `102400` bytes.
@@ -345,8 +389,8 @@ Detailed supporting documentation:
 
 ## Next Development Steps
 
-1. Add mTLS deployment mode.
-2. Run matched plaintext, TLS, and mTLS smoke subsets.
+1. Run matched plaintext, TLS, and mTLS smoke subsets from the same final-campaign row.
+2. Add comparison exports across security modes.
 3. Run equivalent final-campaign phases for plaintext, TLS, and mTLS.
-4. Add comparison exports across security modes.
+4. Add certificate rotation measurement if time allows.
 5. Add targeted consumer-side measurement if time allows.
