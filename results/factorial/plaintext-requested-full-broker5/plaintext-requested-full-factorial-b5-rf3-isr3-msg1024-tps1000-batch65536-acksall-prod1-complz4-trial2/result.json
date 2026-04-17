@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "run_id": "plaintext-requested-full-factorial-b5-rf3-isr3-msg1024-tps1000-batch65536-acksall-prod1-complz4-trial2",
+  "security_mode": "plaintext",
+  "baseline_name": "plaintext-requested-full-factorial",
+  "sweep_name": "plaintext-requested-full-factorial",
+  "sweep_variable": "factorial_config",
+  "sweep_value": "plaintext-requested-full-factorial-b5-rf3-isr3-msg1024-tps1000-batch65536-acksall-prod1-complz4-trial2",
+  "trial_index": 2,
+  "trial_count": 3,
+  "topic": "benchmark-topic-plaintext-requested-full-factorial-b5-rf3-isr3-msg1024-tps1000-batch65536-acksall-prod1-complz4-trial2",
+  "cluster": {
+    "bootstrap_servers": "10.20.1.69:9092,10.20.1.238:9092,10.20.1.91:9092,10.20.1.118:9092,10.20.1.53:9092",
+    "broker_count": 5,
+    "partitions": 6,
+    "replication_factor": 3,
+    "min_insync_replicas": 3
+  },
+  "run_config": {
+    "num_records": 100000,
+    "record_size_bytes": 1024,
+    "throughput_limit_records_per_sec": 1000,
+    "producer_count": 1,
+    "consumer_count": 1,
+    "batch_size": 65536,
+    "linger_ms": 5,
+    "acks": "all",
+    "compression_type": "lz4"
+  },
+  "metrics": {
+    "records_sent": 100000,
+    "throughput_records_per_sec": 999.770053,
+    "throughput_mb_per_sec": 0.98,
+    "avg_latency_ms": 5.36,
+    "max_latency_ms": 540.0,
+    "producer_summaries": [
+      {
+        "summary_line": "100000 records sent, 999.770053 records/sec (0.98 MB/sec), 5.36 ms avg latency, 540.00 ms max latency, 5 ms 50th, 8 ms 95th, 11 ms 99th, 63 ms 99.9th.",
+        "records_sent": 100000,
+        "throughput_records_per_sec": 999.770053,
+        "throughput_mb_per_sec": 0.98,
+        "avg_latency_ms": 5.36,
+        "max_latency_ms": 540.0
+      }
+    ]
+  },
+  "files": {
+    "raw_output": "/var/lib/kafka-client/results/plaintext-requested-full-factorial-b5-rf3-isr3-msg1024-tps1000-batch65536-acksall-prod1-complz4-trial2/producer-perf.log",
+    "metadata": "metadata.json"
+  },
+  "raw_summary_lines": [
+    "100000 records sent, 999.770053 records/sec (0.98 MB/sec), 5.36 ms avg latency, 540.00 ms max latency, 5 ms 50th, 8 ms 95th, 11 ms 99th, 63 ms 99.9th."
+  ]
+}
