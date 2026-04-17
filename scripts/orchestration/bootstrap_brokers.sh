@@ -120,9 +120,11 @@ for i in "${!BROKER_PUBLIC_IPS[@]}"; do
     deploy/kafka/bootstrap/generate_cluster_id.sh \
     deploy/kafka/bootstrap/configure_kafka_plaintext.sh \
     deploy/kafka/bootstrap/create_systemd_service.sh \
+    deploy/kafka/common/collect_host_telemetry.sh \
     deploy/kafka/config/server.properties.plaintext.template
 
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo bash ${REMOTE_DIR}/install_kafka.sh"
+  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0755 ${REMOTE_DIR}/collect_host_telemetry.sh /usr/local/bin/collect_host_telemetry.sh"
   run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh "${HOST}" "sudo install -m 0644 -o kafka -g kafka ${REMOTE_DIR}/server.properties.plaintext.template /etc/kafka/server.properties.template"
 done
 
