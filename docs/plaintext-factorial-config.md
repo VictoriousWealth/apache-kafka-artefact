@@ -148,6 +148,30 @@ Generated plan path:
 
 Each line is one concrete benchmark run configuration. The generated plan contains 972 runs for each valid deployment/durability combination.
 
+The plan is executed with:
+
+```text
+scripts/orchestration/run_factorial_plan.sh
+```
+
+The executor provides deterministic run IDs, checkpoint/resume support, broker-count filtering, max-run limits for smoke testing, dry-run mode, failure logging, aggregation, and export.
+
+Validated executor smoke run:
+
+```text
+results/factorial-smoke/executor-smoke/plaintext-requested-full-factorial-b5-rf3-isr3-msg1024-tps1000-batch16384-acks1-prod1-compnone-trial1/
+```
+
+Smoke result:
+
+| Metric | Value |
+|---|---:|
+| Records sent | 100000 |
+| Throughput records/s | 999.70 |
+| Throughput MB/s | 0.98 |
+| Avg latency ms | 4.22 |
+| Max latency ms | 496.00 |
+
 Current implementation status:
 
 1. `broker_count=5` is provisioned in the dev AWS environment.
