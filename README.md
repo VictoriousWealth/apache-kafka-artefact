@@ -1,21 +1,24 @@
 # Kafka Security Benchmarking Artefact
 
-This repository contains the dissertation artefact for measuring Apache Kafka performance under controlled security and workload configurations. The current implemented path provisions an AWS EC2 Kafka cluster, deploys a plaintext Kafka baseline, runs a parameter sweep, parses raw Kafka benchmark output into structured metrics, and exports dissertation-ready tables and plots.
+This repository contains the dissertation artefact for measuring Apache Kafka performance under controlled security and workload configurations. The current implemented path provisions an AWS EC2 Kafka cluster, deploys a plaintext Kafka baseline, runs parameter sweeps and factorial benchmark plans, parses raw Kafka benchmark output into structured metrics, and exports dissertation-ready tables and plots.
 
 The long-term artefact goal is:
 
-> A configurable Kafka benchmarking framework that supports controlled one-factor-at-a-time parameter sweeps over security and deployment variables, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
+> A configurable Kafka benchmarking framework that supports controlled parameter sweeps and selected factorial experiments over security and deployment variables, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
 
 ## Current Status
 
 Implemented:
 
 - AWS infrastructure provisioning with Terraform.
-- Three-broker Kafka KRaft cluster on EC2.
+- Three-broker and five-broker Kafka KRaft cluster phases on EC2.
 - One EC2 benchmark client.
 - Plaintext Kafka deployment and readiness checks.
 - Parameter sweep execution from JSON configuration.
+- Factorial plan generation and resumable execution from JSONL configuration.
+- Broker-count phase preparation for correct 3-broker and 5-broker experiments.
 - Kafka producer performance benchmark execution.
+- Concurrent producer execution for `producer_count > 1`.
 - Raw result parsing into `result.json`.
 - Sweep-level aggregation into `summary.json` and `summary.csv`.
 - Dissertation export layer producing CSV, LaTeX, and SVG plots.
@@ -34,7 +37,7 @@ The primary dissertation question is:
 
 > What is the performance overhead introduced by zero-trust-inspired security mechanisms, particularly mTLS, in high-throughput Kafka-based distributed systems?
 
-The artefact supports that question by creating repeatable Kafka deployments and running controlled synthetic workloads where one variable is changed at a time.
+The artefact supports that question by creating repeatable Kafka deployments and running controlled synthetic workloads. Early validation used one-factor-at-a-time sweeps; the current plaintext evaluation also supports factorial benchmark plans.
 
 ## System Overview
 
@@ -44,6 +47,7 @@ The system has five main layers:
 - `deploy/kafka/`: contains Kafka installation scripts, broker configuration templates, client configuration, and the producer benchmark runner.
 - `config/baselines/`: defines fixed baseline experiment settings.
 - `config/sweeps/`: defines parameter ranges to test, for example message size or target throughput.
+- `config/factorials/`: defines larger factorial experiment spaces.
 - `scripts/orchestration/`: connects Terraform outputs, remote bootstrap, benchmark execution, parsing, aggregation, and export.
 
 Current AWS topology:
@@ -56,6 +60,8 @@ AWS VPC
         +-- kafka-broker-1
         +-- kafka-broker-2
         +-- kafka-broker-3
+        +-- kafka-broker-4
+        +-- kafka-broker-5
         +-- benchmark-client
 ```
 
@@ -79,6 +85,23 @@ The workflow performs these stages:
 6. `run_parameter_sweep.sh` reads a sweep config, runs all values and trials, copies raw outputs back locally, parses each run, aggregates the sweep, and exports tables/plots.
 
 The deployment part is checkpointed, so interrupted deployment steps can be resumed. Benchmark runs create new run directories.
+
+For the larger plaintext factorial design, the current execution path is:
+
+```bash
+scripts/orchestration/generate_factorial_plan.sh \
+  config/factorials/plaintext-requested-full.json \
+  .orchestration/plaintext-requested-full-plan.jsonl
+
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+BROKER_COUNT_FILTER=5 \
+LOCAL_RESULTS_DIR=results/factorial \
+RESULT_SET_NAME=plaintext-requested-full-broker5 \
+CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`.
 
 ## Parameter Sweep Configuration
 
@@ -106,6 +129,16 @@ The currently validated full plaintext sweep is:
 
 This means the framework runs three trials for each message size while holding all other baseline settings fixed.
 
+The larger requested plaintext factorial design is documented in:
+
+```text
+docs/plaintext-factorial-config.md
+config/factorials/plaintext-requested-full.json
+.orchestration/plaintext-requested-full-plan.jsonl
+```
+
+The generated valid plaintext factorial plan contains `3,888` runs after Kafka validity constraints are applied.
+
 ## Result Outputs
 
 Each benchmark run produces a directory containing:
@@ -127,7 +160,7 @@ Each completed sweep produces:
 - `export/avg_latency_ms.svg`: average latency plot.
 - `export/max_latency_ms.svg`: max latency plot.
 
-The latest valid full plaintext result set is:
+The latest completed full one-factor plaintext sweep result set is:
 
 ```text
 results/plaintext-full-fixed/message-size-bytes/
@@ -143,7 +176,41 @@ The earlier `plaintext-full` run was interrupted by broker disk exhaustion durin
 
 ## Latest Plaintext Results
 
-The completed fixed sweep contains 9 runs:
+The latest plaintext factorial result set is:
+
+```text
+results/factorial/plaintext-requested-full-broker5/
+```
+
+Current state of this result set:
+
+- 100 completed 5-broker plaintext factorial runs.
+- 0 recorded failures.
+- 100 local `result.json` files.
+- 5 brokers.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages.
+- target throughput `1000 records/s`.
+- varied so far: `batch_size`, `acks`, `producer_count`, and `compression_type`.
+
+Observed summary across the first 100 runs:
+
+| Metric | Value |
+|---|---:|
+| Total records sent | 10,000,000 |
+| Mean throughput records/s | 999.55 |
+| Min throughput records/s | 998.35 |
+| Max throughput records/s | 999.80 |
+| Mean avg latency ms | 24.18 |
+| Min avg latency ms | 3.77 |
+| Max avg latency ms | 81.55 |
+| Max observed max latency ms | 7950.00 |
+
+Early interpretation: this is a valid pipeline and partial plaintext baseline. It shows stable throughput near the 1000 records/s target, while latency increases materially as producer concurrency rises from 1 to 6 and 12 producers. It is not yet enough to support final plaintext conclusions across all planned parameters because larger message sizes, higher throughput targets, RF=5, and minISR=4 are not yet covered in this partial result set.
+
+The earlier completed fixed one-factor message-size sweep contains 9 runs:
 
 - 3 message sizes: `1024`, `10240`, `102400` bytes.
 - 3 trials per message size.
@@ -182,6 +249,8 @@ Current hardening features:
 - Remote producer runs use unique topics.
 - Topics are deleted after each run to prevent retained benchmark data from filling broker disks.
 - EC2 root volumes are configured as 40 GB `gp3` volumes.
+- Factorial runs use deterministic run IDs and checkpoint/resume state.
+- Remote result copying uses temporary local directories before marking runs complete.
 
 ## Important Cost Note
 
