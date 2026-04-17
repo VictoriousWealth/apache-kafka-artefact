@@ -392,8 +392,11 @@ run_single_config() {
   if [[ "${security_mode}" == "tls" ]]; then
     benchmark_bootstrap_servers="$(sed 's/:9092/:9094/g' <<< "${BOOTSTRAP_SERVERS}")"
     client_config="/etc/kafka/client/tls-client.properties"
+  elif [[ "${security_mode}" == "mtls" ]]; then
+    benchmark_bootstrap_servers="$(sed 's/:9092/:9094/g' <<< "${BOOTSTRAP_SERVERS}")"
+    client_config="/etc/kafka/client/mtls-client.properties"
   elif [[ "${security_mode}" != "plaintext" ]]; then
-    echo "Only plaintext and TLS factorial execution are implemented. Found security_mode=${security_mode}."
+    echo "Only plaintext, TLS, and mTLS factorial execution are implemented. Found security_mode=${security_mode}."
     return 1
   fi
 
