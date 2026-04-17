@@ -70,6 +70,6 @@ The final campaign contains 5,184 planned rows across plaintext, TLS, and mTLS. 
 
 ## Current Implementation Boundary
 
-The current execution path supports plaintext producer performance runs over both the sweep framework and the factorial executor.
+The current execution path supports plaintext and TLS producer performance runs over the factorial executor. The earlier one-factor sweep runner remains plaintext-only.
 
-TLS and mTLS should later reuse the same baseline, sweep, and factorial model rather than introducing a separate execution model.
+mTLS should reuse the same baseline, sweep, and factorial model rather than introducing a separate execution model.
