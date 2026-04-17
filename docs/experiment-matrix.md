@@ -154,6 +154,18 @@ CHECKPOINT_FILE=.orchestration/security-overhead-final-mtls-broker5.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
 
+After equivalent rows exist for multiple security modes, export matched security-overhead artefacts with:
+
+```bash
+scripts/analysis/export_security_comparison.sh \
+  results/security-comparison-smoke \
+  results/telemetry-smoke/host-telemetry-smoke-fixed/summary.csv \
+  results/tls-smoke/tls-broker5-smoke/summary.csv \
+  results/mtls-smoke/mtls-broker5-smoke/summary.csv
+```
+
+The exporter joins rows by workload and deployment parameters, then calculates TLS and mTLS percentage changes relative to plaintext.
+
 ## Relationship To Earlier Plans
 
 The earlier requested plaintext-only design is documented in:
