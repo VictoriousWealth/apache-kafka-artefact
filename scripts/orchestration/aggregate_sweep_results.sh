@@ -122,7 +122,11 @@ jq -s '
         throughput_records_per_sec: .metrics.throughput_records_per_sec,
         throughput_mb_per_sec: .metrics.throughput_mb_per_sec,
         avg_latency_ms: .metrics.avg_latency_ms,
-        max_latency_ms: .metrics.max_latency_ms
+        max_latency_ms: .metrics.max_latency_ms,
+        telemetry_host_count: (.host_telemetry.host_count // 0),
+        benchmark_client_cpu_percent_mean: .host_telemetry.benchmark_client_cpu_percent_mean,
+        broker_cpu_percent_mean: .host_telemetry.broker_cpu_percent_mean,
+        broker_cpu_percent_max_mean: .host_telemetry.broker_cpu_percent_max_mean
       }
     ]
   }' "${RESULT_FILES[@]}" > "${TEMP_JSON}"
@@ -154,7 +158,11 @@ jq -r '
     "throughput_records_per_sec",
     "throughput_mb_per_sec",
     "avg_latency_ms",
-    "max_latency_ms"
+    "max_latency_ms",
+    "telemetry_host_count",
+    "benchmark_client_cpu_percent_mean",
+    "broker_cpu_percent_mean",
+    "broker_cpu_percent_max_mean"
   ],
   (
     .runs[] |
@@ -184,7 +192,11 @@ jq -r '
       (.throughput_records_per_sec | tostring),
       (.throughput_mb_per_sec | tostring),
       (.avg_latency_ms | tostring),
-      (.max_latency_ms | tostring)
+      (.max_latency_ms | tostring),
+      (.telemetry_host_count | tostring),
+      (.benchmark_client_cpu_percent_mean | tostring),
+      (.broker_cpu_percent_mean | tostring),
+      (.broker_cpu_percent_max_mean | tostring)
     ]
   ) | @csv' "${TEMP_JSON}" > "${TEMP_CSV}"
 
