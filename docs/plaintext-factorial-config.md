@@ -178,6 +178,52 @@ Current implementation status:
 2. `producer_count=6` and `producer_count=12` are supported by launching concurrent `kafka-producer-perf-test.sh` processes.
 3. The parser aggregates producer metrics by summing records/throughput, using a records-weighted average latency, and taking the maximum max-latency value.
 4. `compression_type` and `min_insync_replicas` are wired into the plaintext benchmark path.
+5. `broker_count=3` and `broker_count=5` are handled as separate infrastructure phases using `scripts/orchestration/prepare_broker_count_phase.sh`.
+
+## Broker-Count Phase Execution
+
+For dissertation correctness, do not run `broker_count=3` rows on a five-broker Kafka cluster and merely label them as three-broker results. Prepare each broker-count phase separately.
+
+Prepare the three-broker phase:
+
+```bash
+TARGET_BROKER_COUNT=3 \
+CONFIRM_DESTROY_EXTRA_BROKERS=true \
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+scripts/orchestration/prepare_broker_count_phase.sh
+```
+
+Run the three-broker factorial rows:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+BROKER_COUNT_FILTER=3 \
+LOCAL_RESULTS_DIR=results/factorial \
+RESULT_SET_NAME=plaintext-requested-full-broker3 \
+CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker3.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+Prepare the five-broker phase:
+
+```bash
+TARGET_BROKER_COUNT=5 \
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+scripts/orchestration/prepare_broker_count_phase.sh
+```
+
+Run the five-broker factorial rows:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+BROKER_COUNT_FILTER=5 \
+LOCAL_RESULTS_DIR=results/factorial \
+RESULT_SET_NAME=plaintext-requested-full-broker5 \
+CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+The phase-preparation script uses `RESET_KAFKA_STORAGE=true` by default so each broker-count phase starts from a clean Kafka log state.
 
 Current live broker addresses:
 
