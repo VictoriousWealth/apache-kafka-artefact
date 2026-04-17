@@ -17,7 +17,9 @@ fi
 
 generate_plan() {
   jq -c '
+    def safe: tostring | gsub("[ /:,\\\"]"; "_");
     . as $cfg |
+    ($cfg.security_modes // [$cfg.security_mode])[] as $security_mode |
     $cfg.parameters.broker_count[] as $broker_count |
     $cfg.parameters.replication_factor[] as $replication_factor |
     $cfg.parameters.min_insync_replicas[] as $min_insync_replicas |
@@ -30,9 +32,13 @@ generate_plan() {
     $cfg.parameters.producer_count[] as $producer_count |
     $cfg.parameters.compression_type[] as $compression_type |
     range(1; (($cfg.trials // 1) + 1)) as $trial_index |
-    {
+    (
+      "\($cfg.name)-\($security_mode | safe)-b\($broker_count)-rf\($replication_factor)-isr\($min_insync_replicas)-msg\($message_size_bytes)-tps\($target_messages_per_second)-batch\($batch_size)-acks\($acks | safe)-prod\($producer_count)-comp\($compression_type | safe)-trial\($trial_index)"
+    ) as $run_id |
+    (
+      {
       factorial_name: $cfg.name,
-      security_mode: $cfg.security_mode,
+      security_mode: $security_mode,
       trial_index: $trial_index,
       trial_count: ($cfg.trials // 1),
       topic: $cfg.fixed.topic,
@@ -49,7 +55,14 @@ generate_plan() {
       linger_ms: $cfg.fixed.linger_ms,
       acks: $acks,
       compression_type: $compression_type
-    }
+      }
+      +
+      if ($cfg.security_modes? != null) then
+        {run_id: $run_id}
+      else
+        {}
+      end
+    )
   ' "${CONFIG_FILE}"
 }
 
