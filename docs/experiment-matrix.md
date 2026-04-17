@@ -63,4 +63,4 @@ The larger plaintext-only factorial design is recorded separately in:
 
 - `docs/plaintext-factorial-config.md`
 
-That document captures the requested parameter values, invalid Kafka combinations, corrected run count, and recommended staged execution plan.
+That document captures the requested parameter values, invalid Kafka combinations, corrected run count, staged execution plan, and current 100-run five-broker plaintext result state.
