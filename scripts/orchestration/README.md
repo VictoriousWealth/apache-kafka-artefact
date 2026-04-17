@@ -29,10 +29,10 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
    Execute a baseline-plus-sweep benchmark run set from the benchmark client and copy results back locally
 
 9. `run_factorial_plan.sh`
-   Execute a generated JSONL factorial plan with deterministic run IDs, checkpoint/resume support, broker-count filtering, failure logging, and optional dry-run/max-run controls
+   Execute a generated JSONL factorial plan with deterministic run IDs, checkpoint/resume support, broker-count filtering, security-mode filtering, host telemetry capture, failure logging, and optional dry-run/max-run controls
 
 10. `parse_producer_perf_results.sh`
-   Convert raw `producer-perf.log` output into a standard structured result schema
+   Convert raw `producer-perf.log` output and host telemetry JSONL files into a standard structured result schema
 
 11. `aggregate_sweep_results.sh`
    Aggregate all per-run `result.json` files under a sweep into `summary.json` and `summary.csv`
@@ -167,6 +167,18 @@ Resume behaviour:
 - Existing incomplete local run directories are moved aside with a `.superseded-*` prefix when a run is copied again.
 - Failed runs are recorded in `failures.jsonl` and the executor continues to the next planned row.
 - Re-running the same command resumes the same result set.
+- When `HOST_TELEMETRY_ENABLED=true`, the executor starts telemetry collectors on the benchmark client and active brokers before each run, stops them after the benchmark, and copies broker telemetry into the local run directory before parsing.
+
+Telemetry files:
+
+```text
+results/.../<run-id>/host-telemetry/benchmark-client.jsonl
+results/.../<run-id>/host-telemetry/broker-1.jsonl
+results/.../<run-id>/host-telemetry/broker-2.jsonl
+...
+```
+
+Telemetry summary fields are embedded in `result.json` under `host_telemetry` and flattened into `summary.csv`.
 
 Current five-broker plaintext factorial state:
 
