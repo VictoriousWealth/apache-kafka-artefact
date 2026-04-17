@@ -191,6 +191,17 @@ Each completed sweep produces:
 
 Telemetry-enabled summaries include columns for `telemetry_host_count`, benchmark-client mean CPU, broker mean CPU, and broker max-CPU mean.
 
+Matched security-mode comparison exports produce:
+
+- `comparison.csv`: joined plaintext/TLS/mTLS rows by identical workload and deployment configuration.
+- `summary.csv`: mean TLS and mTLS percentage changes relative to plaintext.
+- `table.tex`: LaTeX summary table for dissertation use.
+- `throughput_overhead_pct.svg`: throughput change plot.
+- `avg_latency_overhead_pct.svg`: average-latency change plot.
+- `max_latency_overhead_pct.svg`: max-latency change plot.
+- `client_cpu_overhead_pct.svg`: benchmark-client CPU change plot.
+- `broker_cpu_overhead_pct.svg`: broker CPU change plot.
+
 The latest completed full one-factor plaintext sweep result set is:
 
 ```text
@@ -316,6 +327,37 @@ Smoke result:
 | Broker mean CPU % | 12.22 |
 | Broker max-CPU mean % | 47.85 |
 
+## Latest Security Comparison Smoke
+
+The first matched plaintext/TLS/mTLS smoke comparison is:
+
+```text
+results/security-comparison-smoke/
+```
+
+This comparison joins the same five-broker workload row across all three security modes:
+
+- 5 brokers.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages.
+- target throughput `1000 records/s`.
+- `batch_size=16384`.
+- `acks=1`.
+- `producer_count=1`.
+- `compression_type=none`.
+- trial `1`.
+
+Mean percentage change relative to plaintext:
+
+| Security mode | Throughput % | Avg latency % | Max latency % | Client CPU % | Broker CPU % |
+|---|---:|---:|---:|---:|---:|
+| TLS | -0.002 | 71.852 | 105.622 | 27.026 | 191.916 |
+| mTLS | -0.017 | 113.086 | 135.542 | 29.673 | 187.468 |
+
+This is a smoke comparison only. It validates the comparison pipeline, but final dissertation conclusions should use larger matched result sets.
+
 The earlier completed fixed one-factor message-size sweep contains 9 runs:
 
 - 3 message sizes: `1024`, `10240`, `102400` bytes.
@@ -389,8 +431,8 @@ Detailed supporting documentation:
 
 ## Next Development Steps
 
-1. Run matched plaintext, TLS, and mTLS smoke subsets from the same final-campaign row.
-2. Add comparison exports across security modes.
-3. Run equivalent final-campaign phases for plaintext, TLS, and mTLS.
+1. Run larger matched plaintext, TLS, and mTLS final-campaign phases.
+2. Use the comparison export for each completed phase.
+3. Add cross-phase comparison for broker-count 3 vs 5.
 4. Add certificate rotation measurement if time allows.
 5. Add targeted consumer-side measurement if time allows.
