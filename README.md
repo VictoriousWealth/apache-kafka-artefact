@@ -19,6 +19,7 @@ Implemented:
 - Broker-count phase preparation for correct 3-broker and 5-broker experiments.
 - Kafka producer performance benchmark execution.
 - Concurrent producer execution for `producer_count > 1`.
+- Per-run host telemetry capture for benchmark client and active brokers.
 - Raw result parsing into `result.json`.
 - Sweep-level aggregation into `summary.json` and `summary.csv`.
 - Dissertation export layer producing CSV, LaTeX, and SVG plots.
@@ -29,7 +30,6 @@ Not implemented yet:
 - mTLS broker/client configuration.
 - Certificate generation and rotation workflow.
 - Consumer-side workload measurement.
-- Host-level CPU, memory, disk, and network metric capture.
 
 ## Research Goal
 
@@ -156,6 +156,7 @@ The older plaintext-only requested matrix is retained in `docs/plaintext-factori
 Each benchmark run produces a directory containing:
 
 - `producer-perf.log`: raw Kafka `kafka-producer-perf-test.sh` output.
+- `host-telemetry/*.jsonl`: raw per-host CPU, memory, network, and disk telemetry samples when telemetry is enabled.
 - `topic-create.log`: topic creation output.
 - `topic-delete.log`: topic deletion output, when cleanup is enabled.
 - `metadata.json`: run configuration and context.
@@ -171,6 +172,8 @@ Each completed sweep produces:
 - `export/throughput_mb_per_sec.svg`: throughput-by-MB plot.
 - `export/avg_latency_ms.svg`: average latency plot.
 - `export/max_latency_ms.svg`: max latency plot.
+
+Telemetry-enabled summaries include columns for `telemetry_host_count`, benchmark-client mean CPU, broker mean CPU, and broker max-CPU mean.
 
 The latest completed full one-factor plaintext sweep result set is:
 
@@ -263,6 +266,8 @@ Current hardening features:
 - EC2 root volumes are configured as 40 GB `gp3` volumes.
 - Factorial runs use deterministic run IDs and checkpoint/resume state.
 - Remote result copying uses temporary local directories before marking runs complete.
+- Per-run host telemetry is started before the benchmark process and stopped before result parsing.
+- Telemetry raw samples are retained as JSONL so parsed summaries remain auditable.
 
 ## Important Cost Note
 
@@ -297,4 +302,4 @@ Detailed supporting documentation:
 2. Add mTLS deployment mode.
 3. Run equivalent sweeps for plaintext, TLS, and mTLS.
 4. Add comparison exports across security modes.
-5. Add host-level metrics if time allows.
+5. Add targeted consumer-side measurement if time allows.
