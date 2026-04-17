@@ -112,6 +112,20 @@ CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker5.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
 
+Run or resume a bounded 100-run validation batch from the same five-broker result set:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+BROKER_COUNT_FILTER=5 \
+MAX_RUNS=41 \
+LOCAL_RESULTS_DIR=results/factorial \
+RESULT_SET_NAME=plaintext-requested-full-broker5 \
+CHECKPOINT_FILE=.orchestration/plaintext-requested-full-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+The example above was used after 59 completed runs already existed, so `MAX_RUNS=41` stopped the batch at 100 completed runs. `MAX_RUNS` limits new executions in the current invocation; it is not a total-run target.
+
 The executor skips rows whose `broker_count` does not match the active cluster unless `ALLOW_CLUSTER_MISMATCH=true` is set. Do not use `ALLOW_CLUSTER_MISMATCH=true` for dissertation evidence unless the methodology explicitly defines what that means.
 
 Factorial resumability files:
@@ -130,6 +144,14 @@ Resume behaviour:
 - Existing incomplete local run directories are moved aside with a `.superseded-*` prefix when a run is copied again.
 - Failed runs are recorded in `failures.jsonl` and the executor continues to the next planned row.
 - Re-running the same command resumes the same result set.
+
+Current five-broker plaintext factorial state:
+
+```text
+results/factorial/plaintext-requested-full-broker5/
+```
+
+This result set currently contains 100 completed runs, 100 checkpoint entries, and no recorded failures.
 
 Run the three-broker portion after preparing the 3-broker phase:
 
