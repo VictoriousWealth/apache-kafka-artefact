@@ -59,14 +59,14 @@ If a sweep defines `trials`, multiple resolved runs are generated for the same s
 
 A factorial plan is a generated JSONL file where each line is one fully resolved benchmark run. It is used when more than one parameter is intentionally varied.
 
-Current plaintext factorial files:
+Current final security-overhead factorial files:
 
 ```text
-config/factorials/plaintext-requested-full.json
-.orchestration/plaintext-requested-full-plan.jsonl
+config/factorials/security-overhead-final.json
+.orchestration/security-overhead-final-plan.jsonl
 ```
 
-The factorial executor records deterministic run IDs, started/completed ledgers, checkpoint state, and failure logs so long runs can be resumed after interruption.
+The final campaign contains 5,184 planned rows across plaintext, TLS, and mTLS. The factorial executor records deterministic run IDs, started/completed ledgers, checkpoint state, and failure logs so long runs can be resumed after interruption.
 
 ## Current Implementation Boundary
 
