@@ -9,7 +9,6 @@ source "${SCRIPT_DIR}/lib.sh"
 OUTPUT_DIR="${OUTPUT_DIR:-.orchestration}"
 INVENTORY_FILE="${INVENTORY_FILE:-${OUTPUT_DIR}/inventory.env}"
 TLS_DIR="${TLS_DIR:-${OUTPUT_DIR}/tls}"
-TLS_STORE_PASSWORD="${TLS_STORE_PASSWORD:-}"
 TLS_DAYS="${TLS_DAYS:-365}"
 
 require_file "${INVENTORY_FILE}"
@@ -27,10 +26,6 @@ if ! command -v keytool >/dev/null 2>&1; then
   exit 1
 fi
 
-if [[ -z "${TLS_STORE_PASSWORD}" ]]; then
-  TLS_STORE_PASSWORD="$(openssl rand -base64 24 | tr -d '\n')"
-fi
-
 mkdir -p "${TLS_DIR}/brokers" "${TLS_DIR}/client"
 chmod 0700 "${TLS_DIR}"
 
@@ -38,6 +33,17 @@ CA_KEY="${TLS_DIR}/ca.key"
 CA_CERT="${TLS_DIR}/ca.crt"
 TRUSTSTORE="${TLS_DIR}/kafka.truststore.p12"
 TLS_ENV="${TLS_DIR}/tls.env"
+
+if [[ -z "${TLS_STORE_PASSWORD:-}" && -f "${TLS_ENV}" ]]; then
+  # Reuse the existing password so regenerated assets remain compatible with
+  # previously deployed client/broker configs unless explicitly overridden.
+  # shellcheck disable=SC1090
+  source "${TLS_ENV}"
+fi
+
+if [[ -z "${TLS_STORE_PASSWORD:-}" ]]; then
+  TLS_STORE_PASSWORD="$(openssl rand -base64 24 | tr -d '\n')"
+fi
 
 if [[ ! -f "${CA_KEY}" || ! -f "${CA_CERT}" ]]; then
   openssl req -x509 -newkey rsa:4096 -sha256 -days "${TLS_DAYS}" -nodes \
@@ -123,6 +129,48 @@ EOF
 done
 
 cp "${TRUSTSTORE}" "${TLS_DIR}/client/kafka.client.truststore.p12"
+
+CLIENT_DIR="${TLS_DIR}/client"
+cat > "${CLIENT_DIR}/openssl.cnf" <<EOF
+[req]
+distinguished_name=req_distinguished_name
+req_extensions=v3_req
+prompt=no
+
+[req_distinguished_name]
+CN=kafka-benchmark-client
+
+[v3_req]
+extendedKeyUsage=clientAuth
+subjectAltName=@alt_names
+
+[alt_names]
+DNS.1=kafka-benchmark-client
+DNS.2=localhost
+IP.1=127.0.0.1
+EOF
+
+openssl req -newkey rsa:2048 -nodes \
+  -keyout "${CLIENT_DIR}/client.key" \
+  -out "${CLIENT_DIR}/client.csr" \
+  -config "${CLIENT_DIR}/openssl.cnf"
+
+openssl x509 -req -sha256 -days "${TLS_DAYS}" \
+  -in "${CLIENT_DIR}/client.csr" \
+  -CA "${CA_CERT}" \
+  -CAkey "${CA_KEY}" \
+  -CAcreateserial \
+  -out "${CLIENT_DIR}/client.crt" \
+  -extensions v3_req \
+  -extfile "${CLIENT_DIR}/openssl.cnf"
+
+openssl pkcs12 -export \
+  -name "kafka-benchmark-client" \
+  -inkey "${CLIENT_DIR}/client.key" \
+  -in "${CLIENT_DIR}/client.crt" \
+  -certfile "${CA_CERT}" \
+  -out "${CLIENT_DIR}/kafka.client.keystore.p12" \
+  -passout "pass:${TLS_STORE_PASSWORD}"
 
 cat > "${TLS_ENV}" <<EOF
 TLS_STORE_PASSWORD='${TLS_STORE_PASSWORD}'
