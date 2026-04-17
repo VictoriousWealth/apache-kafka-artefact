@@ -6,6 +6,16 @@ This document records the plaintext-only experiment matrix before extending the 
 
 This is the requested plaintext factorial sweep design. The factorial executor has been implemented and executes the generated JSONL plan with deterministic run IDs, checkpoint/resume support, broker-count filtering, and failure logging.
 
+The final dissertation campaign has since been reduced and moved to:
+
+```text
+docs/experiment-matrix.md
+config/factorials/security-overhead-final.json
+.orchestration/security-overhead-final-plan.jsonl
+```
+
+The reduced final campaign removes `target_messages_per_second=5000` and `batch_size=65536`, and contains `5,184` runs across plaintext, TLS, and mTLS. This document is retained to explain the earlier plaintext-only 3,888-run design and the existing 100-run plaintext validation result set.
+
 ## Security Mode
 
 The first execution phase is plaintext only:
