@@ -67,6 +67,16 @@ Shrinking from 5 brokers to 3 brokers destroys the extra EC2 broker instances. T
 
 ## Factorial Execution
 
+Generate the reduced final security-overhead campaign plan:
+
+```bash
+scripts/orchestration/generate_factorial_plan.sh \
+  config/factorials/security-overhead-final.json \
+  .orchestration/security-overhead-final-plan.jsonl
+```
+
+This plan contains 5,184 rows across `plaintext`, `tls`, and `mtls`. The executor currently implements plaintext execution only, so use `SECURITY_MODE_FILTER=plaintext` until TLS and mTLS runner paths are implemented.
+
 Generate the plaintext factorial plan:
 
 ```bash
@@ -127,6 +137,19 @@ scripts/orchestration/run_factorial_plan.sh
 The example above was used after 59 completed runs already existed, so `MAX_RUNS=41` stopped the batch at 100 completed runs. `MAX_RUNS` limits new executions in the current invocation; it is not a total-run target.
 
 The executor skips rows whose `broker_count` does not match the active cluster unless `ALLOW_CLUSTER_MISMATCH=true` is set. Do not use `ALLOW_CLUSTER_MISMATCH=true` for dissertation evidence unless the methodology explicitly defines what that means.
+
+The executor also supports `SECURITY_MODE_FILTER`, which is required for multi-mode plans:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
+SECURITY_MODE_FILTER=plaintext \
+BROKER_COUNT_FILTER=5 \
+LOCAL_RESULTS_DIR=results/factorial-final \
+RESULT_SET_NAME=security-overhead-final-plaintext-broker5 \
+CHECKPOINT_FILE=.orchestration/security-overhead-final-plaintext-broker5.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
 
 Factorial resumability files:
 
