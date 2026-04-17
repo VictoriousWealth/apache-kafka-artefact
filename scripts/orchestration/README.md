@@ -55,6 +55,9 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 17. `../analysis/export_sweep_artifacts.sh`
    Convert `summary.json` into dissertation-ready tables and SVG plots under an `export/` directory
 
+18. `../analysis/export_security_comparison.sh`
+   Join matched plaintext/TLS/mTLS `summary.csv` files and export security-overhead CSV, LaTeX, and SVG artefacts
+
 ## Broker-Count Phases
 
 For dissertation correctness, `broker_count=3` and `broker_count=5` should be run as separate infrastructure phases.
@@ -232,6 +235,33 @@ results/.../<run-id>/host-telemetry/broker-2.jsonl
 ```
 
 Telemetry summary fields are embedded in `result.json` under `host_telemetry` and flattened into `summary.csv`.
+
+## Security Comparison Export
+
+After matching plaintext, TLS, and mTLS runs exist for the same workload rows, export overhead comparisons with:
+
+```bash
+scripts/analysis/export_security_comparison.sh \
+  results/security-comparison-smoke \
+  results/telemetry-smoke/host-telemetry-smoke-fixed/summary.csv \
+  results/tls-smoke/tls-broker5-smoke/summary.csv \
+  results/mtls-smoke/mtls-broker5-smoke/summary.csv
+```
+
+The exporter joins rows using deployment and workload fields rather than run IDs. This matters because the same logical row has different run IDs across `plaintext`, `tls`, and `mtls`.
+
+Generated files:
+
+```text
+comparison.csv
+summary.csv
+table.tex
+throughput_overhead_pct.svg
+avg_latency_overhead_pct.svg
+max_latency_overhead_pct.svg
+client_cpu_overhead_pct.svg
+broker_cpu_overhead_pct.svg
+```
 
 Current five-broker plaintext factorial state:
 
