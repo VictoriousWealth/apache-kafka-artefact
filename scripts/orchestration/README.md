@@ -114,6 +114,23 @@ scripts/orchestration/run_factorial_plan.sh
 
 The executor skips rows whose `broker_count` does not match the active cluster unless `ALLOW_CLUSTER_MISMATCH=true` is set. Do not use `ALLOW_CLUSTER_MISMATCH=true` for dissertation evidence unless the methodology explicitly defines what that means.
 
+Factorial resumability files:
+
+```text
+.orchestration/<result-set>.checkpoint
+results/factorial/<result-set>/started.jsonl
+results/factorial/<result-set>/completed.jsonl
+results/factorial/<result-set>/failures.jsonl
+```
+
+Resume behaviour:
+
+- A run is considered complete if its run ID exists in the checkpoint file or if its local `result.json` exists.
+- Remote result copying uses a temporary local directory first, so an interrupted `scp` does not create a false completed run.
+- Existing incomplete local run directories are moved aside with a `.superseded-*` prefix when a run is copied again.
+- Failed runs are recorded in `failures.jsonl` and the executor continues to the next planned row.
+- Re-running the same command resumes the same result set.
+
 Run the three-broker portion after preparing the 3-broker phase:
 
 ```bash
