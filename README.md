@@ -222,6 +222,13 @@ Matched security-mode comparison exports produce:
 - `broker_network_rx_overhead_pct.svg`: broker network receive change plot.
 - `broker_disk_write_overhead_pct.svg`: broker disk write-sector change plot.
 
+For canonical final campaign result names, comparison export can be run with:
+
+```bash
+scripts/analysis/export_final_phase_comparison.sh --broker-count 5
+scripts/analysis/export_final_phase_comparison.sh --broker-count 3
+```
+
 The latest completed full one-factor plaintext sweep result set is:
 
 ```text
