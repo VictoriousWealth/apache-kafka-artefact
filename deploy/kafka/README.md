@@ -52,8 +52,11 @@ mTLS:
 Benchmark runner:
 
 - `client/run_plaintext_producer_perf.sh`
+- `client/run_consumer_perf.sh`
 
-The benchmark runner name is historical. It now accepts `SECURITY_MODE`, `CLIENT_CONFIG`, and `BOOTSTRAP_SERVERS`, so the same producer benchmark script can execute plaintext, TLS, or mTLS runs.
+The producer benchmark runner name is historical. It now accepts `SECURITY_MODE`, `CLIENT_CONFIG`, and `BOOTSTRAP_SERVERS`, so the same producer benchmark script can execute plaintext, TLS, or mTLS runs.
+
+The consumer benchmark runner uses the same security-mode variables. It seeds a benchmark topic with producer-perf, consumes the records with consumer-perf, and is intended for targeted consumer-side validation rather than the full producer factorial campaign.
 
 ## TLS Asset Flow
 
