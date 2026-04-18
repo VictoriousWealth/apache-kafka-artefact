@@ -57,6 +57,14 @@ jq -s \
   --argjson started_count "${STARTED_COUNT}" \
   --argjson failure_count "${FAILURE_COUNT}" \
   '
+  def metric_stats($path):
+    (map(getpath($path) // empty)) as $vals |
+    {
+      mean: (if ($vals | length) > 0 then (($vals | add) / ($vals | length)) else null end),
+      min: (if ($vals | length) > 0 then ($vals | min) else null end),
+      max: (if ($vals | length) > 0 then ($vals | max) else null end)
+    };
+
   {
     schema_version: "1.0",
     sweep_name: .[0].sweep_name,
@@ -68,6 +76,7 @@ jq -s \
     failure_count: $failure_count,
     trial_count: ([.[].trial_count] | max),
     security_modes: ([.[].security_mode] | unique),
+    benchmark_types: ([.[].benchmark_type // "producer"] | unique),
     values_tested: ([.[].sweep_value] | unique),
     grouped_stats: (
       group_by(.sweep_value) |
@@ -75,49 +84,16 @@ jq -s \
         sweep_value: .[0].sweep_value,
         run_count: length,
         trial_indices: ([.[].trial_index] | sort),
-        throughput_records_per_sec: {
-          mean: ((map(.metrics.throughput_records_per_sec // empty) | add) / (map(.metrics.throughput_records_per_sec // empty) | length)),
-          min: (map(.metrics.throughput_records_per_sec // empty) | min),
-          max: (map(.metrics.throughput_records_per_sec // empty) | max)
-        },
-        throughput_mb_per_sec: {
-          mean: ((map(.metrics.throughput_mb_per_sec // empty) | add) / (map(.metrics.throughput_mb_per_sec // empty) | length)),
-          min: (map(.metrics.throughput_mb_per_sec // empty) | min),
-          max: (map(.metrics.throughput_mb_per_sec // empty) | max)
-        },
-        avg_latency_ms: {
-          mean: (
-            (map(select(.metrics.avg_latency_ms != null) | .metrics.avg_latency_ms) ) as $vals |
-            if ($vals | length) > 0 then (($vals | add) / ($vals | length)) else null end
-          ),
-          min: (
-            (map(select(.metrics.avg_latency_ms != null) | .metrics.avg_latency_ms) ) as $vals |
-            if ($vals | length) > 0 then ($vals | min) else null end
-          ),
-          max: (
-            (map(select(.metrics.avg_latency_ms != null) | .metrics.avg_latency_ms) ) as $vals |
-            if ($vals | length) > 0 then ($vals | max) else null end
-          )
-        },
-        max_latency_ms: {
-          mean: (
-            (map(select(.metrics.max_latency_ms != null) | .metrics.max_latency_ms) ) as $vals |
-            if ($vals | length) > 0 then (($vals | add) / ($vals | length)) else null end
-          ),
-          min: (
-            (map(select(.metrics.max_latency_ms != null) | .metrics.max_latency_ms) ) as $vals |
-            if ($vals | length) > 0 then ($vals | min) else null end
-          ),
-          max: (
-            (map(select(.metrics.max_latency_ms != null) | .metrics.max_latency_ms) ) as $vals |
-            if ($vals | length) > 0 then ($vals | max) else null end
-          )
-        }
+        throughput_records_per_sec: metric_stats(["metrics", "throughput_records_per_sec"]),
+        throughput_mb_per_sec: metric_stats(["metrics", "throughput_mb_per_sec"]),
+        avg_latency_ms: metric_stats(["metrics", "avg_latency_ms"]),
+        max_latency_ms: metric_stats(["metrics", "max_latency_ms"])
       })
     ),
     runs: [
       .[] | {
         run_id,
+        benchmark_type: (.benchmark_type // "producer"),
         security_mode,
         baseline_name,
         sweep_name,
@@ -139,10 +115,14 @@ jq -s \
         acks: .run_config.acks,
         compression_type: .run_config.compression_type,
         records_sent: .metrics.records_sent,
+        records_consumed: .metrics.records_consumed,
         throughput_records_per_sec: .metrics.throughput_records_per_sec,
         throughput_mb_per_sec: .metrics.throughput_mb_per_sec,
+        data_consumed_mb: .metrics.data_consumed_mb,
         avg_latency_ms: .metrics.avg_latency_ms,
         max_latency_ms: .metrics.max_latency_ms,
+        rebalance_time_ms: .metrics.rebalance_time_ms,
+        fetch_time_ms: .metrics.fetch_time_ms,
         producer_count_observed: .metrics.producer_count_observed,
         producer_throughput_records_per_sec_min: .metrics.producer_throughput_records_per_sec_min,
         producer_throughput_records_per_sec_max: .metrics.producer_throughput_records_per_sec_max,
@@ -178,6 +158,7 @@ jq -s \
 jq -r '
   [
     "run_id",
+    "benchmark_type",
     "security_mode",
     "baseline_name",
     "sweep_name",
@@ -199,10 +180,14 @@ jq -r '
     "acks",
     "compression_type",
     "records_sent",
+    "records_consumed",
     "throughput_records_per_sec",
     "throughput_mb_per_sec",
+    "data_consumed_mb",
     "avg_latency_ms",
     "max_latency_ms",
+    "rebalance_time_ms",
+    "fetch_time_ms",
     "producer_count_observed",
     "producer_throughput_records_per_sec_min",
     "producer_throughput_records_per_sec_max",
@@ -236,6 +221,7 @@ jq -r '
     .runs[] |
     [
       .run_id,
+      .benchmark_type,
       .security_mode,
       .baseline_name,
       .sweep_name,
@@ -257,10 +243,14 @@ jq -r '
       .acks,
       .compression_type,
       (.records_sent | tostring),
+      (.records_consumed | tostring),
       (.throughput_records_per_sec | tostring),
       (.throughput_mb_per_sec | tostring),
+      (.data_consumed_mb | tostring),
       (.avg_latency_ms | tostring),
       (.max_latency_ms | tostring),
+      (.rebalance_time_ms | tostring),
+      (.fetch_time_ms | tostring),
       (.producer_count_observed | tostring),
       (.producer_throughput_records_per_sec_min | tostring),
       (.producer_throughput_records_per_sec_max | tostring),
