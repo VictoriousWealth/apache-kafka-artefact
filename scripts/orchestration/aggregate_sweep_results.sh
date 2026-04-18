@@ -36,16 +36,36 @@ if [[ "${#RESULT_FILES[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+COMPLETED_COUNT=0
+STARTED_COUNT=0
+FAILURE_COUNT=0
+if [[ -f "${SWEEP_DIR}/completed.jsonl" ]]; then
+  COMPLETED_COUNT="$(wc -l < "${SWEEP_DIR}/completed.jsonl" | tr -d ' ')"
+fi
+if [[ -f "${SWEEP_DIR}/started.jsonl" ]]; then
+  STARTED_COUNT="$(wc -l < "${SWEEP_DIR}/started.jsonl" | tr -d ' ')"
+fi
+if [[ -f "${SWEEP_DIR}/failures.jsonl" ]]; then
+  FAILURE_COUNT="$(wc -l < "${SWEEP_DIR}/failures.jsonl" | tr -d ' ')"
+fi
+
 TEMP_JSON="$(mktemp "${SWEEP_DIR}/summary.XXXXXX.json")"
 TEMP_CSV="$(mktemp "${SWEEP_DIR}/summary.XXXXXX.csv")"
 
-jq -s '
+jq -s \
+  --argjson completed_count "${COMPLETED_COUNT}" \
+  --argjson started_count "${STARTED_COUNT}" \
+  --argjson failure_count "${FAILURE_COUNT}" \
+  '
   {
     schema_version: "1.0",
     sweep_name: .[0].sweep_name,
     baseline_name: .[0].baseline_name,
     sweep_variable: .[0].sweep_variable,
     run_count: length,
+    started_count: $started_count,
+    completed_count: $completed_count,
+    failure_count: $failure_count,
     trial_count: ([.[].trial_count] | max),
     security_modes: ([.[].security_mode] | unique),
     values_tested: ([.[].sweep_value] | unique),
@@ -123,10 +143,34 @@ jq -s '
         throughput_mb_per_sec: .metrics.throughput_mb_per_sec,
         avg_latency_ms: .metrics.avg_latency_ms,
         max_latency_ms: .metrics.max_latency_ms,
+        producer_count_observed: .metrics.producer_count_observed,
+        producer_throughput_records_per_sec_min: .metrics.producer_throughput_records_per_sec_min,
+        producer_throughput_records_per_sec_max: .metrics.producer_throughput_records_per_sec_max,
+        producer_avg_latency_ms_min: .metrics.producer_avg_latency_ms_min,
+        producer_avg_latency_ms_max: .metrics.producer_avg_latency_ms_max,
+        interval_summary_count: .metrics.interval_summary_count,
+        interval_avg_latency_ms_p95: .metrics.interval_avg_latency_ms_p95,
+        interval_avg_latency_ms_p99: .metrics.interval_avg_latency_ms_p99,
+        interval_max_latency_ms_p95: .metrics.interval_max_latency_ms_p95,
+        interval_max_latency_ms_p99: .metrics.interval_max_latency_ms_p99,
         telemetry_host_count: (.host_telemetry.host_count // 0),
         benchmark_client_cpu_percent_mean: .host_telemetry.benchmark_client_cpu_percent_mean,
         broker_cpu_percent_mean: .host_telemetry.broker_cpu_percent_mean,
-        broker_cpu_percent_max_mean: .host_telemetry.broker_cpu_percent_max_mean
+        broker_cpu_percent_max_mean: .host_telemetry.broker_cpu_percent_max_mean,
+        benchmark_client_memory_used_percent_mean: .host_telemetry.benchmark_client_memory_used_percent_mean,
+        broker_memory_used_percent_mean: .host_telemetry.broker_memory_used_percent_mean,
+        benchmark_client_network_rx_bytes_delta: .host_telemetry.benchmark_client_network_rx_bytes_delta,
+        benchmark_client_network_tx_bytes_delta: .host_telemetry.benchmark_client_network_tx_bytes_delta,
+        broker_network_rx_bytes_delta_mean: .host_telemetry.broker_network_rx_bytes_delta_mean,
+        broker_network_tx_bytes_delta_mean: .host_telemetry.broker_network_tx_bytes_delta_mean,
+        broker_network_rx_bytes_delta_total: .host_telemetry.broker_network_rx_bytes_delta_total,
+        broker_network_tx_bytes_delta_total: .host_telemetry.broker_network_tx_bytes_delta_total,
+        benchmark_client_disk_read_sectors_delta: .host_telemetry.benchmark_client_disk_read_sectors_delta,
+        benchmark_client_disk_write_sectors_delta: .host_telemetry.benchmark_client_disk_write_sectors_delta,
+        broker_disk_read_sectors_delta_mean: .host_telemetry.broker_disk_read_sectors_delta_mean,
+        broker_disk_write_sectors_delta_mean: .host_telemetry.broker_disk_write_sectors_delta_mean,
+        broker_disk_read_sectors_delta_total: .host_telemetry.broker_disk_read_sectors_delta_total,
+        broker_disk_write_sectors_delta_total: .host_telemetry.broker_disk_write_sectors_delta_total
       }
     ]
   }' "${RESULT_FILES[@]}" > "${TEMP_JSON}"
@@ -159,10 +203,34 @@ jq -r '
     "throughput_mb_per_sec",
     "avg_latency_ms",
     "max_latency_ms",
+    "producer_count_observed",
+    "producer_throughput_records_per_sec_min",
+    "producer_throughput_records_per_sec_max",
+    "producer_avg_latency_ms_min",
+    "producer_avg_latency_ms_max",
+    "interval_summary_count",
+    "interval_avg_latency_ms_p95",
+    "interval_avg_latency_ms_p99",
+    "interval_max_latency_ms_p95",
+    "interval_max_latency_ms_p99",
     "telemetry_host_count",
     "benchmark_client_cpu_percent_mean",
     "broker_cpu_percent_mean",
-    "broker_cpu_percent_max_mean"
+    "broker_cpu_percent_max_mean",
+    "benchmark_client_memory_used_percent_mean",
+    "broker_memory_used_percent_mean",
+    "benchmark_client_network_rx_bytes_delta",
+    "benchmark_client_network_tx_bytes_delta",
+    "broker_network_rx_bytes_delta_mean",
+    "broker_network_tx_bytes_delta_mean",
+    "broker_network_rx_bytes_delta_total",
+    "broker_network_tx_bytes_delta_total",
+    "benchmark_client_disk_read_sectors_delta",
+    "benchmark_client_disk_write_sectors_delta",
+    "broker_disk_read_sectors_delta_mean",
+    "broker_disk_write_sectors_delta_mean",
+    "broker_disk_read_sectors_delta_total",
+    "broker_disk_write_sectors_delta_total"
   ],
   (
     .runs[] |
@@ -193,10 +261,34 @@ jq -r '
       (.throughput_mb_per_sec | tostring),
       (.avg_latency_ms | tostring),
       (.max_latency_ms | tostring),
+      (.producer_count_observed | tostring),
+      (.producer_throughput_records_per_sec_min | tostring),
+      (.producer_throughput_records_per_sec_max | tostring),
+      (.producer_avg_latency_ms_min | tostring),
+      (.producer_avg_latency_ms_max | tostring),
+      (.interval_summary_count | tostring),
+      (.interval_avg_latency_ms_p95 | tostring),
+      (.interval_avg_latency_ms_p99 | tostring),
+      (.interval_max_latency_ms_p95 | tostring),
+      (.interval_max_latency_ms_p99 | tostring),
       (.telemetry_host_count | tostring),
       (.benchmark_client_cpu_percent_mean | tostring),
       (.broker_cpu_percent_mean | tostring),
-      (.broker_cpu_percent_max_mean | tostring)
+      (.broker_cpu_percent_max_mean | tostring),
+      (.benchmark_client_memory_used_percent_mean | tostring),
+      (.broker_memory_used_percent_mean | tostring),
+      (.benchmark_client_network_rx_bytes_delta | tostring),
+      (.benchmark_client_network_tx_bytes_delta | tostring),
+      (.broker_network_rx_bytes_delta_mean | tostring),
+      (.broker_network_tx_bytes_delta_mean | tostring),
+      (.broker_network_rx_bytes_delta_total | tostring),
+      (.broker_network_tx_bytes_delta_total | tostring),
+      (.benchmark_client_disk_read_sectors_delta | tostring),
+      (.benchmark_client_disk_write_sectors_delta | tostring),
+      (.broker_disk_read_sectors_delta_mean | tostring),
+      (.broker_disk_write_sectors_delta_mean | tostring),
+      (.broker_disk_read_sectors_delta_total | tostring),
+      (.broker_disk_write_sectors_delta_total | tostring)
     ]
   ) | @csv' "${TEMP_JSON}" > "${TEMP_CSV}"
 
