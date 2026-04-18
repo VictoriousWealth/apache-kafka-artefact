@@ -33,6 +33,7 @@ Consumer benchmark run directories contain:
 | `metadata.json` | Consumer workload, cluster, security mode, and run configuration. |
 | `producer-seed.log` | Producer-perf output used to seed records before consumption. |
 | `consumer-perf.log` | Raw Kafka consumer-perf output. |
+| `host-telemetry/*.jsonl` | Per-host telemetry samples captured during the seed and consume window. |
 | `result.json` | Structured parsed consumer result. |
 
 ## Sweep And Phase Files
@@ -261,6 +262,8 @@ Consumer metrics include:
 | `fetch_time_ms` | Fetch time reported by consumer-perf. |
 
 Consumer benchmarking is intended as a targeted validation slice across plaintext, TLS, and mTLS. It is not currently part of the full producer factorial campaign.
+
+Consumer summaries use the same `summary.json` and `summary.csv` aggregation path as producer runs. Producer-only fields such as `avg_latency_ms`, `max_latency_ms`, and interval producer latency diagnostics remain `null` for consumer rows. Consumer throughput fields and telemetry fields are populated.
 
 ## Dissertation Reporting Notes
 
