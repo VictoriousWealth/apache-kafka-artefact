@@ -229,7 +229,7 @@ scripts/analysis/export_final_phase_comparison.sh --broker-count 5
 scripts/analysis/export_final_phase_comparison.sh --broker-count 3
 ```
 
-The latest completed full one-factor plaintext sweep result set is:
+The latest completed full one-factor plaintext sweep result set is historical validation data:
 
 ```text
 results/plaintext-full-fixed/message-size-bytes/
@@ -243,9 +243,11 @@ results/plaintext-full/message-size-bytes/
 
 The earlier `plaintext-full` run was interrupted by broker disk exhaustion during the first `102400` byte trial. The fixed run increased EC2 root volumes and added per-run topic cleanup.
 
-## Latest Plaintext Results
+These one-factor plaintext sweep results are useful for showing early pipeline validation and message-size sensitivity. They are not part of the final matched plaintext/TLS/mTLS factorial campaign.
 
-The latest plaintext factorial result set is:
+## Historical Plaintext Validation Results
+
+The older plaintext factorial validation result set is:
 
 ```text
 results/factorial/plaintext-requested-full-broker5/
@@ -256,6 +258,7 @@ Current state of this result set:
 - 100 completed 5-broker plaintext factorial runs.
 - 0 recorded failures.
 - 100 local `result.json` files.
+- no host telemetry, because these runs were executed before the telemetry-enabled final pipeline was implemented.
 - 5 brokers.
 - replication factor `3`.
 - min in-sync replicas `3`.
@@ -277,7 +280,13 @@ Observed summary across the first 100 runs:
 | Max avg latency ms | 81.55 |
 | Max observed max latency ms | 7950.00 |
 
-Early interpretation: this is a valid pipeline and partial plaintext baseline. It shows stable throughput near the 1000 records/s target, while latency increases materially as producer concurrency rises from 1 to 6 and 12 producers. It is not yet enough to support final plaintext conclusions across all planned parameters because larger message sizes, higher throughput targets, RF=5, and minISR=4 are not yet covered in this partial result set.
+Interpretation: this is a historical pipeline validation and partial plaintext baseline. It shows stable throughput near the 1000 records/s target, while latency increases materially as producer concurrency rises from 1 to 6 and 12 producers. It must not be used for final security-overhead conclusions because it lacks host telemetry, uses the older plaintext-only campaign design, and is not matched against TLS/mTLS final-campaign rows.
+
+Final dissertation security-overhead comparisons should use only telemetry-enabled matched rows under:
+
+```text
+results/factorial-final/
+```
 
 ## Latest TLS Validation
 
