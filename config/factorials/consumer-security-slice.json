@@ -1,0 +1,36 @@
+{
+  "name": "consumer-security-slice",
+  "description": "Targeted consumer-side security-overhead validation slice across plaintext, TLS, and mTLS. This complements the producer final campaign without multiplying it into a full consumer factorial.",
+  "benchmark_type": "consumer",
+  "security_modes": ["plaintext", "tls", "mtls"],
+  "trials": 3,
+  "fixed": {
+    "partition_count": 6,
+    "num_records": 100000,
+    "consumer_count": 1,
+    "linger_ms": 5,
+    "topic": "consumer-benchmark-topic"
+  },
+  "parameters": {
+    "broker_count": [5],
+    "replication_factor": [3],
+    "min_insync_replicas": [3],
+    "message_size_bytes": [1024, 102400],
+    "target_messages_per_second": [1000],
+    "batch_size": [16384],
+    "acks": ["all"],
+    "producer_count": [1],
+    "consumer_count": [1, 6],
+    "compression_type": ["none", "lz4"]
+  },
+  "validity_rules": [
+    "replication_factor <= broker_count",
+    "min_insync_replicas <= replication_factor"
+  ],
+  "implementation_notes": [
+    "The producer settings seed the topic before the consumer benchmark starts.",
+    "consumer_count is intentionally varied while producer_count remains fixed at 1.",
+    "This slice contains 36 runs: 3 security modes x 2 message sizes x 2 compression modes x 2 consumer counts x 3 trials.",
+    "Run only after deploying the matching Kafka security mode."
+  ]
+}
