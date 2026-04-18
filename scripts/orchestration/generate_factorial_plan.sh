@@ -19,6 +19,7 @@ generate_plan() {
   jq -c '
     def safe: tostring | gsub("[ /:,\\\"]"; "_");
     . as $cfg |
+    ($cfg.benchmark_type // "producer") as $benchmark_type |
     ($cfg.security_modes // [$cfg.security_mode])[] as $security_mode |
     $cfg.parameters.broker_count[] as $broker_count |
     $cfg.parameters.replication_factor[] as $replication_factor |
@@ -30,14 +31,18 @@ generate_plan() {
     $cfg.parameters.batch_size[] as $batch_size |
     $cfg.parameters.acks[] as $acks |
     $cfg.parameters.producer_count[] as $producer_count |
+    ($cfg.parameters.consumer_count // [$cfg.fixed.consumer_count])[] as $consumer_count |
     $cfg.parameters.compression_type[] as $compression_type |
     range(1; (($cfg.trials // 1) + 1)) as $trial_index |
     (
-      "\($cfg.name)-\($security_mode | safe)-b\($broker_count)-rf\($replication_factor)-isr\($min_insync_replicas)-msg\($message_size_bytes)-tps\($target_messages_per_second)-batch\($batch_size)-acks\($acks | safe)-prod\($producer_count)-comp\($compression_type | safe)-trial\($trial_index)"
+      "\($cfg.name)-\($security_mode | safe)-b\($broker_count)-rf\($replication_factor)-isr\($min_insync_replicas)-msg\($message_size_bytes)-tps\($target_messages_per_second)-batch\($batch_size)-acks\($acks | safe)-prod\($producer_count)" +
+      (if ($cfg.parameters.consumer_count? != null) then "-cons\($consumer_count)" else "" end) +
+      "-comp\($compression_type | safe)-trial\($trial_index)"
     ) as $run_id |
     (
       {
       factorial_name: $cfg.name,
+      benchmark_type: $benchmark_type,
       security_mode: $security_mode,
       trial_index: $trial_index,
       trial_count: ($cfg.trials // 1),
@@ -50,7 +55,7 @@ generate_plan() {
       num_records: $cfg.fixed.num_records,
       target_messages_per_second: $target_messages_per_second,
       producer_count: $producer_count,
-      consumer_count: $cfg.fixed.consumer_count,
+      consumer_count: $consumer_count,
       batch_size: $batch_size,
       linger_ms: $cfg.fixed.linger_ms,
       acks: $acks,
@@ -68,7 +73,7 @@ generate_plan() {
 
 if [[ -n "${OUTPUT_FILE}" ]]; then
   mkdir -p "$(dirname "${OUTPUT_FILE}")"
-  TEMP_FILE="$(mktemp "$(dirname "${OUTPUT_FILE}")/factorial-plan.XXXXXX.jsonl")"
+  TEMP_FILE="$(mktemp "$(dirname "${OUTPUT_FILE}")/factorial-plan.XXXXXX")"
   generate_plan > "${TEMP_FILE}"
   mv "${TEMP_FILE}" "${OUTPUT_FILE}"
   echo "Wrote $(wc -l < "${OUTPUT_FILE}" | tr -d ' ') planned runs to ${OUTPUT_FILE}"
