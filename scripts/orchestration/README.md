@@ -49,13 +49,16 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 15. `parse_producer_perf_results.sh`
    Convert raw `producer-perf.log` output and host telemetry JSONL files into a standard structured result schema
 
-16. `aggregate_sweep_results.sh`
+16. `parse_consumer_perf_results.sh`
+   Convert raw `consumer-perf.log` output from targeted consumer benchmark runs into structured metrics
+
+17. `aggregate_sweep_results.sh`
    Aggregate all per-run `result.json` files under a sweep into `summary.json` and `summary.csv`
 
-17. `../analysis/export_sweep_artifacts.sh`
+18. `../analysis/export_sweep_artifacts.sh`
    Convert `summary.json` into dissertation-ready tables and SVG plots under an `export/` directory
 
-18. `../analysis/export_security_comparison.sh`
+19. `../analysis/export_security_comparison.sh`
    Join matched plaintext/TLS/mTLS `summary.csv` files and export security-overhead CSV, LaTeX, and SVG artefacts
 
 ## Broker-Count Phases
@@ -236,6 +239,81 @@ results/.../<run-id>/host-telemetry/broker-2.jsonl
 
 Telemetry summary fields are embedded in `result.json` under `host_telemetry` and flattened into `summary.csv`.
 
+Flattened telemetry fields include:
+
+```text
+benchmark_client_cpu_percent_mean
+broker_cpu_percent_mean
+broker_cpu_percent_max_mean
+benchmark_client_memory_used_percent_mean
+broker_memory_used_percent_mean
+benchmark_client_network_rx_bytes_delta
+benchmark_client_network_tx_bytes_delta
+broker_network_rx_bytes_delta_mean
+broker_network_tx_bytes_delta_mean
+broker_network_rx_bytes_delta_total
+broker_network_tx_bytes_delta_total
+benchmark_client_disk_read_sectors_delta
+benchmark_client_disk_write_sectors_delta
+broker_disk_read_sectors_delta_mean
+broker_disk_write_sectors_delta_mean
+broker_disk_read_sectors_delta_total
+broker_disk_write_sectors_delta_total
+```
+
+Producer-spread and interval-latency diagnostics are also flattened:
+
+```text
+producer_count_observed
+producer_throughput_records_per_sec_min
+producer_throughput_records_per_sec_max
+producer_avg_latency_ms_min
+producer_avg_latency_ms_max
+interval_summary_count
+interval_avg_latency_ms_p95
+interval_avg_latency_ms_p99
+interval_max_latency_ms_p95
+interval_max_latency_ms_p99
+```
+
+The interval p95/p99 metrics are derived from producer-perf interval summary lines. They are useful diagnostics, but they are not true per-record latency percentiles.
+
+`summary.json` includes `started_count`, `completed_count`, and `failure_count` when the corresponding factorial ledger files exist.
+
+## Targeted Consumer Benchmarks
+
+The client bootstrap installs:
+
+```text
+/usr/local/bin/run_consumer_perf.sh
+```
+
+The consumer runner accepts the same security-mode controls as the producer runner:
+
+```text
+SECURITY_MODE
+BOOTSTRAP_SERVERS
+CLIENT_CONFIG
+BROKER_COUNT
+PARTITIONS
+REPLICATION_FACTOR
+MIN_INSYNC_REPLICAS
+NUM_RECORDS
+RECORD_SIZE
+CONSUMER_COUNT
+COMPRESSION_TYPE
+```
+
+It creates a topic, seeds records with `kafka-producer-perf-test.sh`, consumes them with `kafka-consumer-perf-test.sh`, and writes `consumer-perf.log`, `producer-seed.log`, and `metadata.json`.
+
+Parse a copied consumer run directory with:
+
+```bash
+scripts/orchestration/parse_consumer_perf_results.sh <run-directory>
+```
+
+This is intended for a small consumer-side validation slice across `plaintext`, `tls`, and `mtls`, not for replacing the main producer factorial campaign.
+
 ## Security Comparison Export
 
 After matching plaintext, TLS, and mTLS runs exist for the same workload rows, export overhead comparisons with:
@@ -259,8 +337,13 @@ table.tex
 throughput_overhead_pct.svg
 avg_latency_overhead_pct.svg
 max_latency_overhead_pct.svg
+interval_avg_latency_p95_overhead_pct.svg
+interval_avg_latency_p99_overhead_pct.svg
 client_cpu_overhead_pct.svg
 broker_cpu_overhead_pct.svg
+client_network_tx_overhead_pct.svg
+broker_network_rx_overhead_pct.svg
+broker_disk_write_overhead_pct.svg
 ```
 
 Current five-broker plaintext factorial state:
