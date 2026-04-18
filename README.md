@@ -478,9 +478,11 @@ Detailed supporting documentation:
 - `docs/architecture.md`: architecture, components, and execution flow.
 - `docs/experiment-methodology.md`: benchmarking method and validity controls.
 - `docs/experiment-matrix.md`: experiment dimensions and planned comparisons.
+- `docs/final-campaign-operating-notes.md`: phase order, batching, checkpoint, cost, and safety guidance for the final campaign.
 - `docs/industry-kafka-setups.md`: source-derived industry Kafka setup evidence and practical benchmark profiles.
 - `docs/sweep-framework.md`: parameter sweep design.
 - `docs/export-layer.md`: tables and plot export process.
+- `docs/result-schema.md`: result files, metric definitions, telemetry fields, and comparison schema.
 - `docs/reproducibility.md`: rerun and environment guidance.
 - `docs/thesis-mapping.md`: mapping from artefact to dissertation chapters/rubric.
 - `docs/deployment-hardening.md`: fault tolerance and idempotency notes.
