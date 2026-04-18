@@ -61,6 +61,9 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 19. `../analysis/export_security_comparison.sh`
    Join matched plaintext/TLS/mTLS `summary.csv` files and export security-overhead CSV, LaTeX, and SVG artefacts
 
+20. `../analysis/export_final_phase_comparison.sh`
+   Convenience wrapper that exports broker-3 or broker-5 final campaign comparisons from canonical final result-set names
+
 ## Broker-Count Phases
 
 For dissertation correctness, `broker_count=3` and `broker_count=5` should be run as separate infrastructure phases.
@@ -327,6 +330,13 @@ scripts/analysis/export_security_comparison.sh \
 ```
 
 The exporter joins rows using deployment and workload fields rather than run IDs. This matters because the same logical row has different run IDs across `plaintext`, `tls`, and `mtls`.
+
+For canonical final campaign phase names, use:
+
+```bash
+scripts/analysis/export_final_phase_comparison.sh --broker-count 5
+scripts/analysis/export_final_phase_comparison.sh --broker-count 3
+```
 
 Generated files:
 
