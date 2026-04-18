@@ -4,6 +4,12 @@
 
 This document records how to run the final security-overhead campaign safely and reproducibly. It is operational guidance for executing the dissertation experiment without mixing incompatible result sets, accidentally running the wrong Kafka security mode, or creating unnecessary AWS cost.
 
+This document focuses on the producer final campaign. The targeted consumer-side validation slice is documented separately in:
+
+```text
+docs/consumer-benchmarking.md
+```
+
 The final campaign config is:
 
 ```text
