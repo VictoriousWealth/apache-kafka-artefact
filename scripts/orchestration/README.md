@@ -64,6 +64,9 @@ These scripts connect Terraform provisioning and Kafka bootstrap into a simple r
 20. `../analysis/export_final_phase_comparison.sh`
    Convenience wrapper that exports broker-3 or broker-5 final campaign comparisons from canonical final result-set names
 
+21. `../analysis/export_consumer_slice_comparison.sh`
+   Convenience wrapper that exports the targeted consumer-side security slice comparison from canonical result-set names
+
 ## Broker-Count Phases
 
 For dissertation correctness, `broker_count=3` and `broker_count=5` should be run as separate infrastructure phases.
@@ -120,6 +123,16 @@ scripts/orchestration/generate_factorial_plan.sh \
   config/factorials/plaintext-requested-full.json \
   .orchestration/plaintext-requested-full-plan.jsonl
 ```
+
+Generate the targeted consumer-side security slice:
+
+```bash
+scripts/orchestration/generate_factorial_plan.sh \
+  config/factorials/consumer-security-slice.json \
+  .orchestration/consumer-security-slice-plan.jsonl
+```
+
+This plan contains 72 consumer runs across plaintext, TLS, and mTLS. It uses `benchmark_type=consumer`, so the same executor calls `/usr/local/bin/run_consumer_perf.sh` and `parse_consumer_perf_results.sh`.
 
 Dry-run the first five rows for the active five-broker cluster:
 
@@ -316,6 +329,28 @@ scripts/orchestration/parse_consumer_perf_results.sh <run-directory>
 ```
 
 This is intended for a small consumer-side validation slice across `plaintext`, `tls`, and `mtls`, not for replacing the main producer factorial campaign.
+
+Run a consumer mTLS broker-5 batch:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+FACTORIAL_PLAN_FILE=.orchestration/consumer-security-slice-plan.jsonl \
+SECURITY_MODE_FILTER=mtls \
+BROKER_COUNT_FILTER=5 \
+MAX_RUNS=10 \
+LOCAL_RESULTS_DIR=results/consumer-slice \
+RESULT_SET_NAME=consumer-security-slice-mtls-broker5 \
+CHECKPOINT_FILE=.orchestration/consumer-security-slice-mtls-broker5.checkpoint \
+AGGREGATE_RESULTS=true \
+EXPORT_RESULTS=false \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+After plaintext, TLS, and mTLS consumer summaries exist, export the consumer comparison with:
+
+```bash
+scripts/analysis/export_consumer_slice_comparison.sh
+```
 
 ## Security Comparison Export
 
