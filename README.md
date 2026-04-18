@@ -327,6 +327,45 @@ Smoke result:
 | Broker mean CPU % | 12.22 |
 | Broker max-CPU mean % | 47.85 |
 
+## Current Final Campaign State
+
+The first resumable final-campaign batch has been started for:
+
+```text
+results/factorial-final/security-overhead-final-mtls-broker5/
+```
+
+Current state:
+
+- 25 completed mTLS five-broker final-campaign runs.
+- 0 recorded failures.
+- 25 checkpoint entries in `.orchestration/security-overhead-final-mtls-broker5.checkpoint`.
+- 25 local `result.json` files.
+- Broker count `5`.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages.
+- target throughput `1000 records/s`.
+- covered so far: `acks=1`, part of `acks=all`, `producer_count` values `1`, `6`, and `12`, and both `none` and `lz4` compression.
+
+Observed summary across the first 25 mTLS final-campaign rows:
+
+| Metric | Value |
+|---|---:|
+| Mean throughput records/s | 999.377 |
+| Min throughput records/s | 998.083 |
+| Max throughput records/s | 999.760 |
+| Mean avg latency ms | 241.836 |
+| Min avg latency ms | 7.060 |
+| Max avg latency ms | 852.510 |
+| Mean max latency ms | 6884.840 |
+| Max observed max latency ms | 18790.000 |
+| Mean benchmark-client CPU % | 44.887 |
+| Mean broker CPU % | 7.892 |
+
+This is an in-progress partial final-campaign result set. It is suitable for checking pipeline stability and early trends, but final dissertation claims should use matched plaintext/TLS/mTLS rows across the intended campaign slices.
+
 ## Latest Security Comparison Smoke
 
 The first matched plaintext/TLS/mTLS smoke comparison is:
