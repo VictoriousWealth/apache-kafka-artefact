@@ -20,6 +20,7 @@ Implemented:
 - Factorial plan generation and resumable execution from JSONL configuration.
 - Broker-count phase preparation for correct 3-broker and 5-broker experiments.
 - Kafka producer performance benchmark execution.
+- Targeted Kafka consumer performance benchmark runner and parser.
 - Concurrent producer execution for `producer_count > 1`.
 - Per-run host telemetry capture for benchmark client and active brokers.
 - Raw result parsing into `result.json`.
@@ -29,7 +30,7 @@ Implemented:
 Not implemented yet:
 
 - Certificate rotation workflow.
-- Consumer-side workload measurement.
+- Full factorial consumer-side workload campaign.
 
 ## Research Goal
 
@@ -172,6 +173,7 @@ The older plaintext-only requested matrix is retained in `docs/plaintext-factori
 Each benchmark run produces a directory containing:
 
 - `producer-perf.log`: raw Kafka `kafka-producer-perf-test.sh` output.
+- `consumer-perf.log`: raw Kafka `kafka-consumer-perf-test.sh` output for targeted consumer benchmark runs.
 - `host-telemetry/*.jsonl`: raw per-host CPU, memory, network, and disk telemetry samples when telemetry is enabled.
 - `topic-create.log`: topic creation output.
 - `topic-delete.log`: topic deletion output, when cleanup is enabled.
@@ -191,6 +193,19 @@ Each completed sweep produces:
 
 Telemetry-enabled summaries include columns for `telemetry_host_count`, benchmark-client mean CPU, broker mean CPU, and broker max-CPU mean.
 
+The enriched measurement schema also includes:
+
+- producer spread metrics: observed producer count, min/max producer throughput, and min/max producer average latency.
+- interval-derived latency diagnostics: p95/p99 of Kafka producer interval average latency and interval max latency.
+- memory telemetry: benchmark-client and broker mean memory-used percentage.
+- network telemetry: benchmark-client RX/TX deltas and broker RX/TX mean/total deltas.
+- disk telemetry: benchmark-client and broker read/write sector deltas.
+- reliability counters in `summary.json`: `started_count`, `completed_count`, and `failure_count`.
+
+The interval p95/p99 fields are not true per-record latency percentiles. They are derived from Kafka producer-perf interval summary lines and should be reported as interval-level diagnostics.
+
+Targeted consumer benchmark runs use `run_consumer_perf.sh`. They seed a topic with Kafka producer-perf, consume it with Kafka consumer-perf, and parse records consumed, MB/s, records/s, rebalance time, and fetch time. This path is intended for a smaller consumer-side slice rather than the full producer factorial campaign.
+
 Matched security-mode comparison exports produce:
 
 - `comparison.csv`: joined plaintext/TLS/mTLS rows by identical workload and deployment configuration.
@@ -199,8 +214,13 @@ Matched security-mode comparison exports produce:
 - `throughput_overhead_pct.svg`: throughput change plot.
 - `avg_latency_overhead_pct.svg`: average-latency change plot.
 - `max_latency_overhead_pct.svg`: max-latency change plot.
+- `interval_avg_latency_p95_overhead_pct.svg`: interval average-latency p95 change plot.
+- `interval_avg_latency_p99_overhead_pct.svg`: interval average-latency p99 change plot.
 - `client_cpu_overhead_pct.svg`: benchmark-client CPU change plot.
 - `broker_cpu_overhead_pct.svg`: broker CPU change plot.
+- `client_network_tx_overhead_pct.svg`: benchmark-client network transmit change plot.
+- `broker_network_rx_overhead_pct.svg`: broker network receive change plot.
+- `broker_disk_write_overhead_pct.svg`: broker disk write-sector change plot.
 
 The latest completed full one-factor plaintext sweep result set is:
 
@@ -473,5 +493,5 @@ Detailed supporting documentation:
 1. Run larger matched plaintext, TLS, and mTLS final-campaign phases.
 2. Use the comparison export for each completed phase.
 3. Add cross-phase comparison for broker-count 3 vs 5.
-4. Add certificate rotation measurement if time allows.
-5. Add targeted consumer-side measurement if time allows.
+4. Run a targeted consumer-side slice across plaintext, TLS, and mTLS.
+5. Add certificate rotation measurement if time allows.
