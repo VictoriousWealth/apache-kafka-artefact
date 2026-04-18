@@ -78,6 +78,16 @@ Host-level metrics:
 
 CPU usage is the most important host-level metric because the dissertation's theoretical argument links cryptographic processing overhead to utilisation-driven latency growth.
 
+The implementation records these metrics per benchmark run for the benchmark client and every active broker. Aggregated summaries expose benchmark-client CPU, broker CPU, memory usage, network byte deltas, and disk sector deltas so throughput/latency changes can be interpreted alongside resource utilisation.
+
+The framework also records producer-spread diagnostics for concurrent producer runs, including observed producer count, min/max per-producer throughput, and min/max per-producer average latency. This prevents a multi-producer average from hiding one overloaded producer process.
+
+Kafka producer-perf does not provide true per-record p95/p99 latency in the current runner. The parser therefore records interval-derived p95/p99 diagnostics from producer-perf interval summary lines. These must be described as interval-level latency diagnostics, not as true event-level latency percentiles.
+
+Run reliability is part of the measurement model. Phase summaries include started, completed, and failed run counts, and failed runs remain in `failures.jsonl` rather than being silently discarded.
+
+Consumer-side measurement is handled as a targeted validation slice. The consumer runner seeds a topic with producer-perf and then measures consumer-perf throughput, records consumed, rebalance time, and fetch time under the same `plaintext`, `tls`, and `mtls` client configurations. This is deliberately separate from the main producer factorial campaign because a full consumer factorial would multiply the campaign size without being necessary to answer the primary producer write-path overhead question.
+
 ## Fairness Controls
 
 To support valid comparisons:
