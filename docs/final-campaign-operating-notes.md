@@ -238,6 +238,8 @@ Do not mix these into final security-overhead comparisons:
 
 Final security-overhead comparisons should use matched rows from the canonical `results/factorial-final/` paths.
 
+Historical result sets can still be cited as engineering validation evidence, for example to explain how the pipeline was hardened after interruption or how concurrent producer support was validated. They should be labelled as historical validation, not final evaluation data.
+
 ## Comparison Exports
 
 After matched plaintext, TLS, and mTLS summaries exist for a broker-count phase, export comparisons with the final-phase wrapper.
