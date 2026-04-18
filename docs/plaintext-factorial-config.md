@@ -16,6 +16,8 @@ config/factorials/security-overhead-final.json
 
 The reduced final campaign removes `target_messages_per_second=5000` and `batch_size=65536`, and contains `5,184` runs across plaintext, TLS, and mTLS. This document is retained to explain the earlier plaintext-only 3,888-run design and the existing 100-run plaintext validation result set.
 
+Important: the 100-run plaintext validation result set is historical. It was produced before host telemetry and the final security-overhead campaign schema were implemented. It should not be mixed with final plaintext/TLS/mTLS comparisons.
+
 ## Security Mode
 
 The first execution phase is plaintext only:
