@@ -95,8 +95,13 @@ table.tex
 throughput_overhead_pct.svg
 avg_latency_overhead_pct.svg
 max_latency_overhead_pct.svg
+interval_avg_latency_p95_overhead_pct.svg
+interval_avg_latency_p99_overhead_pct.svg
 client_cpu_overhead_pct.svg
 broker_cpu_overhead_pct.svg
+client_network_tx_overhead_pct.svg
+broker_network_rx_overhead_pct.svg
+broker_disk_write_overhead_pct.svg
 ```
 
 The comparison key excludes `security_mode` and `run_id`. It uses the actual workload and deployment fields instead, including broker count, replication factor, min in-sync replicas, message size, throughput target, producer count, batch size, acknowledgements, compression type, and trial index.
