@@ -13,6 +13,7 @@ from typing import Any
 SECURITY_MODES = ("plaintext", "tls", "mtls")
 
 CONFIG_FIELDS = [
+    "benchmark_type",
     "broker_count",
     "partitions",
     "replication_factor",
@@ -32,8 +33,11 @@ CONFIG_FIELDS = [
 METRIC_FIELDS = [
     "throughput_records_per_sec",
     "throughput_mb_per_sec",
+    "data_consumed_mb",
     "avg_latency_ms",
     "max_latency_ms",
+    "rebalance_time_ms",
+    "fetch_time_ms",
     "producer_throughput_records_per_sec_min",
     "producer_throughput_records_per_sec_max",
     "producer_avg_latency_ms_min",
