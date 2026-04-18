@@ -21,6 +21,7 @@ Implemented:
 - Broker-count phase preparation for correct 3-broker and 5-broker experiments.
 - Kafka producer performance benchmark execution.
 - Targeted Kafka consumer performance benchmark runner and parser.
+- Consumer-side security slice plan and resumable execution through the factorial executor.
 - Concurrent producer execution for `producer_count > 1`.
 - Per-run host telemetry capture for benchmark client and active brokers.
 - Raw result parsing into `result.json`.
@@ -30,7 +31,7 @@ Implemented:
 Not implemented yet:
 
 - Certificate rotation workflow.
-- Full factorial consumer-side workload campaign.
+- Full factorial consumer-side workload campaign. The implemented consumer path is a targeted validation slice.
 
 ## Research Goal
 
@@ -205,6 +206,15 @@ The enriched measurement schema also includes:
 The interval p95/p99 fields are not true per-record latency percentiles. They are derived from Kafka producer-perf interval summary lines and should be reported as interval-level diagnostics.
 
 Targeted consumer benchmark runs use `run_consumer_perf.sh`. They seed a topic with Kafka producer-perf, consume it with Kafka consumer-perf, and parse records consumed, MB/s, records/s, rebalance time, and fetch time. This path is intended for a smaller consumer-side slice rather than the full producer factorial campaign.
+
+The targeted consumer-side security slice is defined in:
+
+```text
+config/factorials/consumer-security-slice.json
+.orchestration/consumer-security-slice-plan.jsonl
+```
+
+It contains 72 planned runs across plaintext, TLS, and mTLS.
 
 Matched security-mode comparison exports produce:
 
@@ -433,6 +443,43 @@ Mean percentage change relative to plaintext:
 
 This is a smoke comparison only. It validates the comparison pipeline, but final dissertation conclusions should use larger matched result sets.
 
+## Latest Consumer Benchmark Validation
+
+The first validated mTLS consumer smoke result set is:
+
+```text
+results/consumer-slice/consumer-security-slice-mtls-broker5-smoke-fixed3/
+```
+
+Validated configuration:
+
+- benchmark type `consumer`.
+- 5 brokers.
+- mTLS broker listener on `9094`.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages.
+- 100,000 records.
+- seed producer target throughput `1000 records/s`.
+- `consumer_count=1`.
+- `compression_type=none`.
+- host telemetry from benchmark client plus all five brokers.
+
+Smoke result:
+
+| Metric | Value |
+|---|---:|
+| Records consumed | 100,000 |
+| Consumer throughput records/s | 27,292.576 |
+| Consumer throughput MB/s | 26.653 |
+| Data consumed MB | 97.656 |
+| Rebalance time ms | 1072 |
+| Fetch time ms | 2592 |
+| Telemetry host count | 6 |
+| Benchmark client mean CPU % | 17.667 |
+| Broker mean CPU % | 5.688 |
+
 The earlier completed fixed one-factor message-size sweep contains 9 runs:
 
 - 3 message sizes: `1024`, `10240`, `102400` bytes.
@@ -492,6 +539,7 @@ Do not destroy the environment if you still need to inspect live broker state or
 Detailed supporting documentation:
 
 - `docs/architecture.md`: architecture, components, and execution flow.
+- `docs/consumer-benchmarking.md`: targeted consumer-side benchmark design, execution, and validation.
 - `docs/experiment-methodology.md`: benchmarking method and validity controls.
 - `docs/experiment-matrix.md`: experiment dimensions and planned comparisons.
 - `docs/final-campaign-operating-notes.md`: phase order, batching, checkpoint, cost, and safety guidance for the final campaign.
@@ -511,5 +559,5 @@ Detailed supporting documentation:
 1. Run larger matched plaintext, TLS, and mTLS final-campaign phases.
 2. Use the comparison export for each completed phase.
 3. Add cross-phase comparison for broker-count 3 vs 5.
-4. Run a targeted consumer-side slice across plaintext, TLS, and mTLS.
+4. Run the targeted consumer-side slice across plaintext, TLS, and mTLS.
 5. Add certificate rotation measurement if time allows.
