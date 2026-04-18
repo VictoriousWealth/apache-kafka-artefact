@@ -26,6 +26,7 @@ COMPRESSION_TYPE="${COMPRESSION_TYPE:-none}"
 RESULT_ROOT="${RESULT_ROOT:-/var/lib/kafka-client/results}"
 RUN_ID="${RUN_ID:-$(date -u +"%Y%m%dT%H%M%SZ")-${SECURITY_MODE}-consumer}"
 DELETE_TOPIC_AFTER_RUN="${DELETE_TOPIC_AFTER_RUN:-true}"
+DELETE_TOPIC_BEFORE_RUN="${DELETE_TOPIC_BEFORE_RUN:-true}"
 KAFKA_VERSION="${KAFKA_VERSION:-3.8.0}"
 SCALA_VERSION="${SCALA_VERSION:-2.13}"
 INSTALL_DIR="${INSTALL_DIR:-/opt}"
@@ -55,6 +56,17 @@ if [[ -z "${BOOTSTRAP_SERVERS}" ]]; then
 fi
 
 mkdir -p "${RUN_DIR}"
+
+if [[ "${DELETE_TOPIC_BEFORE_RUN}" == "true" ]]; then
+  "${KAFKA_HOME}/bin/kafka-topics.sh" \
+    --bootstrap-server "${BOOTSTRAP_SERVERS}" \
+    --command-config "${CLIENT_CONFIG}" \
+    --delete \
+    --if-exists \
+    --topic "${RUN_TOPIC}" \
+    > "${RUN_DIR}/topic-predelete.log" 2>&1 || true
+  sleep 5
+fi
 
 "${KAFKA_HOME}/bin/kafka-topics.sh" \
   --bootstrap-server "${BOOTSTRAP_SERVERS}" \
@@ -87,9 +99,8 @@ mkdir -p "${RUN_DIR}"
   --topic "${RUN_TOPIC}" \
   --messages "${NUM_RECORDS}" \
   --group "${CONSUMER_GROUP}" \
-  --reset-policy earliest \
   --threads "${CONSUMER_COUNT}" \
-  --show-detailed-stats \
+  --timeout 60000 \
   > "${RAW_OUTPUT}" 2>&1
 
 if [[ "${DELETE_TOPIC_AFTER_RUN}" == "true" ]]; then
@@ -116,6 +127,7 @@ cat > "${TEMP_METADATA}" <<EOF
   "trial_count": ${TRIAL_COUNT},
   "topic": "${RUN_TOPIC}",
   "base_topic": "${TOPIC}",
+  "delete_topic_before_run": ${DELETE_TOPIC_BEFORE_RUN},
   "delete_topic_after_run": ${DELETE_TOPIC_AFTER_RUN},
   "bootstrap_servers": "${BOOTSTRAP_SERVERS}",
   "broker_count": ${BROKER_COUNT},
