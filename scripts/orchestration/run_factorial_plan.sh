@@ -118,15 +118,17 @@ append_jsonl_atomic() {
 write_started() {
   local run_id="$1"
   local factorial_name="$2"
-  local broker_count="$3"
-  local replication_factor="$4"
-  local min_insync_replicas="$5"
-  local trial_index="$6"
+  local benchmark_type="$3"
+  local broker_count="$4"
+  local replication_factor="$5"
+  local min_insync_replicas="$6"
+  local trial_index="$7"
 
   append_jsonl_atomic "${STARTED_FILE}" "$(
     jq -cn \
       --arg run_id "${run_id}" \
       --arg factorial_name "${factorial_name}" \
+      --arg benchmark_type "${benchmark_type}" \
       --argjson broker_count "${broker_count}" \
       --argjson replication_factor "${replication_factor}" \
       --argjson min_insync_replicas "${min_insync_replicas}" \
@@ -135,6 +137,7 @@ write_started() {
       '{
         run_id: $run_id,
         factorial_name: $factorial_name,
+        benchmark_type: $benchmark_type,
         broker_count: $broker_count,
         replication_factor: $replication_factor,
         min_insync_replicas: $min_insync_replicas,
@@ -288,6 +291,7 @@ plan_rows() {
     [
       $run_id,
       $row.factorial_name,
+      ($row.benchmark_type // "producer"),
       $row.security_mode,
       $row.topic,
       $row.broker_count,
@@ -313,18 +317,21 @@ write_failure() {
   local run_id="$1"
   local reason="$2"
   local factorial_name="$3"
-  local security_mode="$4"
-  local broker_count="$5"
-  local replication_factor="$6"
-  local min_insync_replicas="$7"
-  local message_size_bytes="$8"
-  local target_messages_per_second="$9"
+  local benchmark_type="$4"
+  local security_mode="$5"
+  local broker_count="$6"
+  local replication_factor="$7"
+  local min_insync_replicas="$8"
+  local message_size_bytes="$9"
   shift 9
+  local target_messages_per_second="$1"
+  shift
   local batch_size="$1"
   local acks="$2"
   local producer_count="$3"
-  local compression_type="$4"
-  local trial_index="$5"
+  local consumer_count="$4"
+  local compression_type="$5"
+  local trial_index="$6"
 
   append_jsonl_atomic "${FAILED_FILE}" "$(
     jq -cn \
@@ -332,6 +339,7 @@ write_failure() {
     --arg reason "${reason}" \
     --arg timestamp "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
     --arg factorial_name "${factorial_name}" \
+    --arg benchmark_type "${benchmark_type}" \
     --arg security_mode "${security_mode}" \
     --argjson broker_count "${broker_count}" \
     --argjson replication_factor "${replication_factor}" \
@@ -341,11 +349,13 @@ write_failure() {
     --argjson batch_size "${batch_size}" \
     --arg acks "${acks}" \
     --argjson producer_count "${producer_count}" \
+    --argjson consumer_count "${consumer_count}" \
     --arg compression_type "${compression_type}" \
     --argjson trial_index "${trial_index}" \
     '{
       run_id: $run_id,
       factorial_name: $factorial_name,
+      benchmark_type: $benchmark_type,
       security_mode: $security_mode,
       broker_count: $broker_count,
       replication_factor: $replication_factor,
@@ -355,6 +365,7 @@ write_failure() {
       batch_size: $batch_size,
       acks: $acks,
       producer_count: $producer_count,
+      consumer_count: $consumer_count,
       compression_type: $compression_type,
       trial_index: $trial_index,
       failure_reason: $reason,
@@ -366,25 +377,26 @@ write_failure() {
 run_single_config() {
   local run_id="$1"
   local factorial_name="$2"
-  local security_mode="$3"
-  local topic="$4"
-  local broker_count="$5"
-  local partition_count="$6"
-  local replication_factor="$7"
-  local min_insync_replicas="$8"
-  local message_size_bytes="$9"
+  local benchmark_type="$3"
+  local security_mode="$4"
+  local topic="$5"
+  local broker_count="$6"
+  local partition_count="$7"
+  local replication_factor="$8"
+  local min_insync_replicas="$9"
   shift 9
-  local num_records="$1"
-  local target_messages_per_second="$2"
-  local producer_count="$3"
-  local consumer_count="$4"
-  local batch_size="$5"
-  local linger_ms="$6"
-  local acks="$7"
-  local compression_type="$8"
-  local trial_index="$9"
+  local message_size_bytes="$1"
+  local num_records="$2"
+  local target_messages_per_second="$3"
+  local producer_count="$4"
+  local consumer_count="$5"
+  local batch_size="$6"
+  local linger_ms="$7"
+  local acks="$8"
+  local compression_type="$9"
   shift 9
-  local trial_count="$1"
+  local trial_index="$1"
+  local trial_count="$2"
 
   local benchmark_bootstrap_servers="${BOOTSTRAP_SERVERS}"
   local client_config="/etc/kafka/client/plaintext-client.properties"
@@ -403,8 +415,16 @@ run_single_config() {
   start_host_telemetry "${run_id}"
 
   set +e
-  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
-    "sudo BOOTSTRAP_SERVERS='${benchmark_bootstrap_servers}' CLIENT_CONFIG='${client_config}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
+  if [[ "${benchmark_type}" == "consumer" ]]; then
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
+      "sudo BOOTSTRAP_SERVERS='${benchmark_bootstrap_servers}' CLIENT_CONFIG='${client_config}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' PRODUCER_THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_consumer_perf.sh"
+  elif [[ "${benchmark_type}" == "producer" ]]; then
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" remote_ssh \
+      "sudo BOOTSTRAP_SERVERS='${benchmark_bootstrap_servers}' CLIENT_CONFIG='${client_config}' TOPIC='${topic}' NUM_RECORDS='${num_records}' RECORD_SIZE='${message_size_bytes}' THROUGHPUT='${target_messages_per_second}' PARTITIONS='${partition_count}' REPLICATION_FACTOR='${replication_factor}' MIN_INSYNC_REPLICAS='${min_insync_replicas}' BROKER_COUNT='${broker_count}' BASELINE_NAME='${factorial_name}' SWEEP_NAME='${factorial_name}' SWEEP_VARIABLE='factorial_config' SWEEP_VALUE='${run_id}' TRIAL_INDEX='${trial_index}' TRIAL_COUNT='${trial_count}' SECURITY_MODE='${security_mode}' PRODUCER_COUNT='${producer_count}' CONSUMER_COUNT='${consumer_count}' BATCH_SIZE='${batch_size}' LINGER_MS='${linger_ms}' ACKS='${acks}' COMPRESSION_TYPE='${compression_type}' RUN_ID='${run_id}' /usr/local/bin/run_plaintext_producer_perf.sh"
+  else
+    echo "Unsupported benchmark_type=${benchmark_type}. Expected producer or consumer."
+    return 1
+  fi
   local benchmark_exit_code=$?
   set -e
 
@@ -418,7 +438,11 @@ run_single_config() {
   if [[ "${HOST_TELEMETRY_ENABLED}" == "true" ]]; then
     run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" copy_broker_telemetry_back "${run_id}"
   fi
-  run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" "${SCRIPT_DIR}/parse_producer_perf_results.sh" "${RESULT_DIR}/${run_id}"
+  if [[ "${benchmark_type}" == "consumer" ]]; then
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" "${SCRIPT_DIR}/parse_consumer_perf_results.sh" "${RESULT_DIR}/${run_id}"
+  else
+    run_with_retries "${MAX_RETRIES}" "${RETRY_SLEEP_SECONDS}" "${SCRIPT_DIR}/parse_producer_perf_results.sh" "${RESULT_DIR}/${run_id}"
+  fi
 }
 
 on_interrupt() {
@@ -445,7 +469,7 @@ executed_count=0
 skipped_count=0
 failed_count=0
 
-while IFS=$'\t' read -r run_id factorial_name security_mode topic row_broker_count partition_count replication_factor min_insync_replicas message_size_bytes num_records target_messages_per_second producer_count consumer_count batch_size linger_ms acks compression_type trial_index trial_count; do
+while IFS=$'\t' read -r run_id factorial_name benchmark_type security_mode topic row_broker_count partition_count replication_factor min_insync_replicas message_size_bytes num_records target_messages_per_second producer_count consumer_count batch_size linger_ms acks compression_type trial_index trial_count; do
   processed_count=$((processed_count + 1))
 
   if [[ -n "${BROKER_COUNT_FILTER}" && "${row_broker_count}" != "${BROKER_COUNT_FILTER}" ]]; then
@@ -483,13 +507,13 @@ while IFS=$'\t' read -r run_id factorial_name security_mode topic row_broker_cou
     continue
   fi
 
-  write_started "${run_id}" "${factorial_name}" "${row_broker_count}" "${replication_factor}" "${min_insync_replicas}" "${trial_index}"
-  if run_single_config "${run_id}" "${factorial_name}" "${security_mode}" "${topic}" "${row_broker_count}" "${partition_count}" "${replication_factor}" "${min_insync_replicas}" "${message_size_bytes}" "${num_records}" "${target_messages_per_second}" "${producer_count}" "${consumer_count}" "${batch_size}" "${linger_ms}" "${acks}" "${compression_type}" "${trial_index}" "${trial_count}"; then
+  write_started "${run_id}" "${factorial_name}" "${benchmark_type}" "${row_broker_count}" "${replication_factor}" "${min_insync_replicas}" "${trial_index}"
+  if run_single_config "${run_id}" "${factorial_name}" "${benchmark_type}" "${security_mode}" "${topic}" "${row_broker_count}" "${partition_count}" "${replication_factor}" "${min_insync_replicas}" "${message_size_bytes}" "${num_records}" "${target_messages_per_second}" "${producer_count}" "${consumer_count}" "${batch_size}" "${linger_ms}" "${acks}" "${compression_type}" "${trial_index}" "${trial_count}"; then
     mark_checkpoint "${CHECKPOINT_FILE}" "${run_id}"
     write_completed "${run_id}" "${RESULT_DIR}/${run_id}/result.json"
     executed_count=$((executed_count + 1))
   else
-    write_failure "${run_id}" "benchmark execution failed" "${factorial_name}" "${security_mode}" "${row_broker_count}" "${replication_factor}" "${min_insync_replicas}" "${message_size_bytes}" "${target_messages_per_second}" "${batch_size}" "${acks}" "${producer_count}" "${compression_type}" "${trial_index}"
+    write_failure "${run_id}" "benchmark execution failed" "${factorial_name}" "${benchmark_type}" "${security_mode}" "${row_broker_count}" "${replication_factor}" "${min_insync_replicas}" "${message_size_bytes}" "${target_messages_per_second}" "${batch_size}" "${acks}" "${producer_count}" "${consumer_count}" "${compression_type}" "${trial_index}"
     failed_count=$((failed_count + 1))
     log "Run failed: ${run_id}; recorded in ${FAILED_FILE}"
   fi
