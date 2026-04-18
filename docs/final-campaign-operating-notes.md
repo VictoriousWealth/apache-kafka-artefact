@@ -240,7 +240,28 @@ Final security-overhead comparisons should use matched rows from the canonical `
 
 ## Comparison Exports
 
-After matched plaintext, TLS, and mTLS summaries exist for a broker-count phase, export comparisons with:
+After matched plaintext, TLS, and mTLS summaries exist for a broker-count phase, export comparisons with the final-phase wrapper.
+
+For broker-5:
+
+```bash
+scripts/analysis/export_final_phase_comparison.sh --broker-count 5
+```
+
+For broker-3:
+
+```bash
+scripts/analysis/export_final_phase_comparison.sh --broker-count 3
+```
+
+The wrapper expects the canonical result paths documented above and writes to:
+
+```text
+results/factorial-final/security-overhead-final-broker5-comparison/
+results/factorial-final/security-overhead-final-broker3-comparison/
+```
+
+Equivalent manual broker-5 command:
 
 ```bash
 scripts/analysis/export_security_comparison.sh \
@@ -250,7 +271,7 @@ scripts/analysis/export_security_comparison.sh \
   results/factorial-final/security-overhead-final-mtls-broker5/summary.csv
 ```
 
-For broker-3:
+Equivalent manual broker-3 command:
 
 ```bash
 scripts/analysis/export_security_comparison.sh \
