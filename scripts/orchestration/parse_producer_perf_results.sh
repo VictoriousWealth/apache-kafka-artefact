@@ -53,9 +53,15 @@ if [[ -z "${SUMMARY_LINES}" ]]; then
 fi
 
 PARSED_METRICS="$(
-  SUMMARY_LINES="${SUMMARY_LINES}" python3 - <<'PY'
-import os, re, json
+  SUMMARY_LINES="${SUMMARY_LINES}" RUN_DIR="${RUN_DIR}" python3 - <<'PY'
+import glob
+import math
+import os
+import re
+import json
+
 lines = [line for line in os.environ["SUMMARY_LINES"].splitlines() if line.strip()]
+run_dir = os.environ["RUN_DIR"]
 patterns = {
     "records_sent": r"^\s*([0-9]+)\s+records sent",
     "throughput_records_per_sec": r",\s*([0-9.]+)\s+records/sec",
@@ -63,13 +69,56 @@ patterns = {
     "avg_latency_ms": r",\s*([0-9.]+)\s+ms avg latency",
     "max_latency_ms": r",\s*([0-9.]+)\s+ms max latency",
 }
-per_producer = []
-for line in lines:
+
+def parse_summary_line(line):
     data = {"summary_line": line}
     for key, pattern in patterns.items():
         match = re.search(pattern, line)
         data[key] = float(match.group(1)) if match and "." in match.group(1) else (int(match.group(1)) if match else None)
-    per_producer.append(data)
+    return data
+
+def percentile(values, percentile_value):
+    values = sorted(value for value in values if value is not None)
+    if not values:
+        return None
+    if len(values) == 1:
+        return values[0]
+    rank = (len(values) - 1) * (percentile_value / 100.0)
+    lower = math.floor(rank)
+    upper = math.ceil(rank)
+    if lower == upper:
+        return values[int(rank)]
+    return values[lower] + ((values[upper] - values[lower]) * (rank - lower))
+
+per_producer = []
+for line in lines:
+    per_producer.append(parse_summary_line(line))
+
+interval_summaries = []
+for producer_log in sorted(glob.glob(os.path.join(run_dir, "producer-perf-[0-9]*.log"))):
+    producer_index = None
+    producer_count = None
+    with open(producer_log, "r", encoding="utf-8") as handle:
+        matched_lines = []
+        for raw_line in handle:
+            line = raw_line.strip()
+            if line.startswith("producer_index="):
+                producer_index = int(line.split("=", 1)[1])
+                continue
+            if line.startswith("producer_count="):
+                producer_count = int(line.split("=", 1)[1])
+                continue
+            if re.search(r"records sent,.*records/sec", line):
+                matched_lines.append(line)
+
+    # kafka-producer-perf-test prints periodic interval lines and a final summary line.
+    # Drop the final line here so these are explicitly interval-derived diagnostics,
+    # not true per-record latency percentiles.
+    for line in matched_lines[:-1]:
+        parsed = parse_summary_line(line)
+        parsed["producer_index"] = producer_index
+        parsed["producer_count"] = producer_count
+        interval_summaries.append(parsed)
 
 records_sent = sum(item["records_sent"] or 0 for item in per_producer)
 throughput_records_per_sec = sum(item["throughput_records_per_sec"] or 0 for item in per_producer)
@@ -79,13 +128,28 @@ avg_latency_ms = None
 if latency_weight:
     avg_latency_ms = sum((item["avg_latency_ms"] or 0) * (item["records_sent"] or 0) for item in per_producer) / latency_weight
 max_values = [item["max_latency_ms"] for item in per_producer if item["max_latency_ms"] is not None]
+producer_throughputs = [item["throughput_records_per_sec"] for item in per_producer if item["throughput_records_per_sec"] is not None]
+producer_avg_latencies = [item["avg_latency_ms"] for item in per_producer if item["avg_latency_ms"] is not None]
+interval_avg_latencies = [item["avg_latency_ms"] for item in interval_summaries if item["avg_latency_ms"] is not None]
+interval_max_latencies = [item["max_latency_ms"] for item in interval_summaries if item["max_latency_ms"] is not None]
 print(json.dumps({
     "records_sent": records_sent,
     "throughput_records_per_sec": throughput_records_per_sec,
     "throughput_mb_per_sec": throughput_mb_per_sec,
     "avg_latency_ms": avg_latency_ms,
     "max_latency_ms": max(max_values) if max_values else None,
+    "producer_count_observed": len(per_producer),
+    "producer_throughput_records_per_sec_min": min(producer_throughputs) if producer_throughputs else None,
+    "producer_throughput_records_per_sec_max": max(producer_throughputs) if producer_throughputs else None,
+    "producer_avg_latency_ms_min": min(producer_avg_latencies) if producer_avg_latencies else None,
+    "producer_avg_latency_ms_max": max(producer_avg_latencies) if producer_avg_latencies else None,
+    "interval_summary_count": len(interval_summaries),
+    "interval_avg_latency_ms_p95": percentile(interval_avg_latencies, 95),
+    "interval_avg_latency_ms_p99": percentile(interval_avg_latencies, 99),
+    "interval_max_latency_ms_p95": percentile(interval_max_latencies, 95),
+    "interval_max_latency_ms_p99": percentile(interval_max_latencies, 99),
     "producer_summaries": per_producer,
+    "interval_summaries": interval_summaries,
 }))
 PY
 )"
@@ -150,6 +214,16 @@ if os.path.isdir(telemetry_dir):
 
 broker_cpu = [host["cpu_percent_mean"] for host in hosts if host.get("role") == "broker" and host.get("cpu_percent_mean") is not None]
 client_cpu = [host["cpu_percent_mean"] for host in hosts if host.get("role") == "benchmark_client" and host.get("cpu_percent_mean") is not None]
+broker_memory = [host["memory_used_percent_mean"] for host in hosts if host.get("role") == "broker" and host.get("memory_used_percent_mean") is not None]
+client_memory = [host["memory_used_percent_mean"] for host in hosts if host.get("role") == "benchmark_client" and host.get("memory_used_percent_mean") is not None]
+broker_rx = [host["network_rx_bytes_delta"] for host in hosts if host.get("role") == "broker" and host.get("network_rx_bytes_delta") is not None]
+broker_tx = [host["network_tx_bytes_delta"] for host in hosts if host.get("role") == "broker" and host.get("network_tx_bytes_delta") is not None]
+client_rx = [host["network_rx_bytes_delta"] for host in hosts if host.get("role") == "benchmark_client" and host.get("network_rx_bytes_delta") is not None]
+client_tx = [host["network_tx_bytes_delta"] for host in hosts if host.get("role") == "benchmark_client" and host.get("network_tx_bytes_delta") is not None]
+broker_disk_read = [host["disk_read_sectors_delta"] for host in hosts if host.get("role") == "broker" and host.get("disk_read_sectors_delta") is not None]
+broker_disk_write = [host["disk_write_sectors_delta"] for host in hosts if host.get("role") == "broker" and host.get("disk_write_sectors_delta") is not None]
+client_disk_read = [host["disk_read_sectors_delta"] for host in hosts if host.get("role") == "benchmark_client" and host.get("disk_read_sectors_delta") is not None]
+client_disk_write = [host["disk_write_sectors_delta"] for host in hosts if host.get("role") == "benchmark_client" and host.get("disk_write_sectors_delta") is not None]
 
 print(json.dumps({
     "enabled": bool(hosts),
@@ -159,6 +233,20 @@ print(json.dumps({
     "broker_cpu_percent_mean": mean(broker_cpu),
     "broker_cpu_percent_max_mean": mean([host["cpu_percent_max"] for host in hosts if host.get("role") == "broker" and host.get("cpu_percent_max") is not None]),
     "benchmark_client_cpu_percent_mean": mean(client_cpu),
+    "broker_memory_used_percent_mean": mean(broker_memory),
+    "benchmark_client_memory_used_percent_mean": mean(client_memory),
+    "broker_network_rx_bytes_delta_mean": mean(broker_rx),
+    "broker_network_tx_bytes_delta_mean": mean(broker_tx),
+    "broker_network_rx_bytes_delta_total": sum(broker_rx) if broker_rx else None,
+    "broker_network_tx_bytes_delta_total": sum(broker_tx) if broker_tx else None,
+    "benchmark_client_network_rx_bytes_delta": client_rx[0] if client_rx else None,
+    "benchmark_client_network_tx_bytes_delta": client_tx[0] if client_tx else None,
+    "broker_disk_read_sectors_delta_mean": mean(broker_disk_read),
+    "broker_disk_write_sectors_delta_mean": mean(broker_disk_write),
+    "broker_disk_read_sectors_delta_total": sum(broker_disk_read) if broker_disk_read else None,
+    "broker_disk_write_sectors_delta_total": sum(broker_disk_write) if broker_disk_write else None,
+    "benchmark_client_disk_read_sectors_delta": client_disk_read[0] if client_disk_read else None,
+    "benchmark_client_disk_write_sectors_delta": client_disk_write[0] if client_disk_write else None,
     "source_directory": "host-telemetry" if hosts else None,
 }))
 PY
@@ -204,7 +292,18 @@ jq \
       throughput_mb_per_sec: $parsed_metrics.throughput_mb_per_sec,
       avg_latency_ms: $parsed_metrics.avg_latency_ms,
       max_latency_ms: $parsed_metrics.max_latency_ms,
-      producer_summaries: $parsed_metrics.producer_summaries
+      producer_count_observed: $parsed_metrics.producer_count_observed,
+      producer_throughput_records_per_sec_min: $parsed_metrics.producer_throughput_records_per_sec_min,
+      producer_throughput_records_per_sec_max: $parsed_metrics.producer_throughput_records_per_sec_max,
+      producer_avg_latency_ms_min: $parsed_metrics.producer_avg_latency_ms_min,
+      producer_avg_latency_ms_max: $parsed_metrics.producer_avg_latency_ms_max,
+      interval_summary_count: $parsed_metrics.interval_summary_count,
+      interval_avg_latency_ms_p95: $parsed_metrics.interval_avg_latency_ms_p95,
+      interval_avg_latency_ms_p99: $parsed_metrics.interval_avg_latency_ms_p99,
+      interval_max_latency_ms_p95: $parsed_metrics.interval_max_latency_ms_p95,
+      interval_max_latency_ms_p99: $parsed_metrics.interval_max_latency_ms_p99,
+      producer_summaries: $parsed_metrics.producer_summaries,
+      interval_summaries: $parsed_metrics.interval_summaries
     },
     host_telemetry: $parsed_telemetry,
     files: {
