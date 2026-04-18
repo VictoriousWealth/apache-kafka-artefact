@@ -39,6 +39,7 @@ TOPIC_OUTPUT="${RUN_DIR}/topic-create.log"
 TOPIC_DELETE_OUTPUT="${RUN_DIR}/topic-delete.log"
 TEMP_METADATA=""
 RUN_TOPIC="${TOPIC}-${RUN_ID}"
+CONSUMER_GROUP="${CONSUMER_GROUP:-consumer-perf-${RUN_ID}}"
 
 cleanup() {
   if [[ -n "${TEMP_METADATA}" && -f "${TEMP_METADATA}" ]]; then
@@ -85,6 +86,8 @@ mkdir -p "${RUN_DIR}"
   --consumer.config "${CLIENT_CONFIG}" \
   --topic "${RUN_TOPIC}" \
   --messages "${NUM_RECORDS}" \
+  --group "${CONSUMER_GROUP}" \
+  --reset-policy earliest \
   --threads "${CONSUMER_COUNT}" \
   --show-detailed-stats \
   > "${RAW_OUTPUT}" 2>&1
@@ -124,6 +127,7 @@ cat > "${TEMP_METADATA}" <<EOF
   "min_insync_replicas": ${MIN_INSYNC_REPLICAS},
   "producer_count": 1,
   "consumer_count": ${CONSUMER_COUNT},
+  "consumer_group": "${CONSUMER_GROUP}",
   "batch_size": ${BATCH_SIZE},
   "linger_ms": ${LINGER_MS},
   "acks": "${ACKS}",
