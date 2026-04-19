@@ -10,7 +10,7 @@ The design is driven by five constraints:
 
 - Realistic Kafka deployment and configuration
 - Support for `plaintext`, `TLS`, and `mTLS`
-- Controlled one-factor-at-a-time experimentation
+- Controlled factorial campaigns plus targeted validation slices
 - Automated and repeatable execution
 - Structured, reproducible result capture
 
@@ -27,7 +27,7 @@ Responsibilities:
 - Support topics, partitions, and replication settings
 - Provide a stable and repeatable environment for experiments
 
-Planned location:
+Location:
 
 - `deploy/kafka/`
 
@@ -41,9 +41,10 @@ Responsibilities:
 - Support trusted CA material
 - Separate server-authenticated TLS from mutual-authenticated mTLS
 
-Planned location:
+Location:
 
-- `deploy/certs/`
+- `deploy/kafka/tls/`
+- `.orchestration/`
 
 ### 3. Workload Generation Layer
 
@@ -55,10 +56,10 @@ Responsibilities:
 - Consume messages for end-to-end measurement under matching synthetic workloads
 - Support configurable batching, acknowledgements, and concurrency
 
-Planned location:
+Location:
 
-- `src/producer/`
-- `src/consumer/`
+- `deploy/kafka/client/`
+- `scripts/orchestration/`
 
 ### 4. Experiment Controller
 
@@ -73,10 +74,10 @@ Responsibilities:
 - Collect and persist measurements
 - Ensure consistent setup and teardown across runs
 
-Planned location:
+Location:
 
-- `src/controller/`
 - `scripts/`
+- `scripts/orchestration/`
 
 ### 5. Results and Analysis Preparation
 
@@ -86,26 +87,26 @@ Responsibilities:
 
 - Store run metadata
 - Store throughput and latency results
-- Store optional host metrics
+- Store host telemetry metrics
 - Preserve baseline and sweep definitions alongside outputs
 
-Planned location:
+Location:
 
 - `results/`
 
 ## Logical Execution Flow
 
-The expected flow for a single run is:
+The expected flow for a single factorial run is:
 
 1. Load a baseline from `config/baselines/`.
-2. Load a sweep definition from `config/sweeps/`.
-3. Generate one concrete run by applying a single sweep value to the baseline.
+2. Load a factorial plan row from a generated JSONL plan.
+3. Resolve the workload, deployment, and security-mode metadata for that row.
 4. Provision or restart Kafka with the resolved security mode.
 5. Create or validate topics and partitions.
-6. Start producer and consumer benchmark processes.
-7. Capture benchmark metrics and run metadata.
+6. Start the producer or targeted consumer benchmark process.
+7. Capture benchmark metrics, host telemetry, and run metadata.
 8. Persist results to structured files in `results/`.
-9. Repeat for the remaining values in the sweep.
+9. Record the completed run in the checkpoint ledger and repeat for the remaining rows.
 
 ## Primary Architectural Views
 
@@ -173,4 +174,4 @@ This separation is necessary to keep the methodology academically defensible.
 - Deployment approach: `AWS EC2` provisioned with `Terraform`
 - Initial benchmark focus: throughput first, latency second
 - Initial comparison set: `plaintext`, `TLS`, `mTLS`
-- Methodology: one-factor-at-a-time sweeps for early validation, then selected factorial slices for the larger plaintext parameter space, with a justified subset of resolved runs reported in the dissertation
+- Methodology: one-factor-at-a-time sweeps for early validation, then matched producer-side factorial phases across plaintext, TLS, and mTLS, with a targeted consumer-side validation slice
