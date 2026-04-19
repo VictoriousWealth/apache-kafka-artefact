@@ -383,10 +383,10 @@ results/factorial-final/security-overhead-final-mtls-broker5/
 
 Current state:
 
-- 25 completed mTLS five-broker final-campaign runs.
+- 26 completed mTLS five-broker final-campaign runs.
 - 0 recorded failures.
-- 25 checkpoint entries in `.orchestration/security-overhead-final-mtls-broker5.checkpoint`.
-- 25 local `result.json` files.
+- 26 checkpoint entries in `.orchestration/security-overhead-final-mtls-broker5.checkpoint`.
+- 26 local `result.json` files.
 - Broker count `5`.
 - replication factor `3`.
 - min in-sync replicas `3`.
@@ -395,20 +395,20 @@ Current state:
 - target throughput `1000 records/s`.
 - covered so far: `acks=1`, part of `acks=all`, `producer_count` values `1`, `6`, and `12`, and both `none` and `lz4` compression.
 
-Observed summary across the first 25 mTLS final-campaign rows:
+Observed summary across the first 26 mTLS final-campaign rows:
 
 | Metric | Value |
 |---|---:|
-| Mean throughput records/s | 999.377 |
+| Mean throughput records/s | 999.380 |
 | Min throughput records/s | 998.083 |
 | Max throughput records/s | 999.760 |
-| Mean avg latency ms | 241.836 |
+| Mean avg latency ms | 240.244 |
 | Min avg latency ms | 7.060 |
 | Max avg latency ms | 852.510 |
-| Mean max latency ms | 6884.840 |
+| Mean max latency ms | 6933.000 |
 | Max observed max latency ms | 18790.000 |
-| Mean benchmark-client CPU % | 44.887 |
-| Mean broker CPU % | 7.892 |
+| Mean benchmark-client CPU % | 45.511 |
+| Mean broker CPU % | 8.009 |
 
 This is an in-progress partial final-campaign result set. It is suitable for checking pipeline stability and early trends, but final dissertation claims should use matched plaintext/TLS/mTLS rows across the intended campaign slices.
 
@@ -443,7 +443,44 @@ Mean percentage change relative to plaintext:
 
 This is a smoke comparison only. It validates the comparison pipeline, but final dissertation conclusions should use larger matched result sets.
 
-## Latest Consumer Benchmark Validation
+## Current Consumer Benchmark State
+
+The current canonical mTLS consumer-slice result set is:
+
+```text
+results/consumer-slice/consumer-security-slice-mtls-broker5/
+```
+
+Current state:
+
+- 10 completed mTLS five-broker consumer-slice runs.
+- 0 recorded failures.
+- 10 local `result.json` files.
+- 14 remaining mTLS consumer-slice runs for this security mode.
+- 5 brokers.
+- replication factor `3`.
+- min in-sync replicas `3`.
+- 6 partitions.
+- 1,024 byte messages so far.
+- seed producer target throughput `1000 records/s`.
+- covered so far: `consumer_count` values `1` and `6`, and both `none` and `lz4` compression.
+
+Observed summary across the first 10 canonical mTLS consumer-slice rows:
+
+| Metric | Value |
+|---|---:|
+| Total records consumed | 1,000,000 |
+| Mean consumer throughput records/s | 27,680.231 |
+| Min consumer throughput records/s | 22,021.581 |
+| Max consumer throughput records/s | 32,185.388 |
+| Mean consumer throughput MB/s | 27.031 |
+| Mean benchmark-client CPU % | 18.262 |
+| Mean broker CPU % | 5.876 |
+| Telemetry host count | 6 |
+
+This is an in-progress targeted consumer-side validation slice. It should be reported separately from the producer-side 5,184-run final campaign.
+
+## Latest Consumer Smoke Validation
 
 The first validated mTLS consumer smoke result set is:
 
