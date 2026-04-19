@@ -147,7 +147,38 @@ results/consumer-slice/consumer-security-slice-broker5-comparison/
 
 The comparison exporter joins rows by workload and deployment fields, including `benchmark_type`, so consumer rows are not mixed with producer rows.
 
-## Current Validation
+## Current Canonical mTLS Batch
+
+The canonical mTLS five-broker consumer-slice result set has started:
+
+```text
+results/consumer-slice/consumer-security-slice-mtls-broker5/
+```
+
+Current state:
+
+- 10 completed mTLS consumer-slice runs.
+- 0 recorded failures.
+- 10 local `result.json` files.
+- 14 remaining mTLS runs for this security mode.
+- host telemetry captured from the benchmark client and all five brokers.
+
+Observed summary across the first 10 canonical mTLS consumer-slice rows:
+
+| Metric | Value |
+|---|---:|
+| Total records consumed | 1,000,000 |
+| Mean consumer throughput records/s | 27,680.231 |
+| Min consumer throughput records/s | 22,021.581 |
+| Max consumer throughput records/s | 32,185.388 |
+| Mean consumer throughput MB/s | 27.031 |
+| Mean benchmark-client CPU % | 18.262 |
+| Mean broker CPU % | 5.876 |
+| Telemetry host count | 6 |
+
+This canonical batch supersedes the earlier smoke result for current execution status, but it is still incomplete. Use it as in-progress validation until the full 24-run mTLS consumer slice is complete.
+
+## Smoke Validation
 
 A live mTLS consumer smoke validation has completed successfully:
 
@@ -175,7 +206,7 @@ Observed metrics:
 | Benchmark client mean CPU % | 17.667 |
 | Broker mean CPU % | 5.688 |
 
-Earlier failed consumer smoke attempts are retained as engineering debugging artefacts only. Use the `smoke-fixed3` result as the validated consumer-path smoke result.
+Earlier failed consumer smoke attempts are retained as engineering debugging artefacts only. Use the `smoke-fixed3` result as the validated consumer-path smoke result, and use `consumer-security-slice-mtls-broker5/` for the current canonical mTLS consumer-slice state.
 
 ## Dissertation Interpretation
 
