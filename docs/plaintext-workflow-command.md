@@ -1,8 +1,10 @@
 # Plaintext Workflow Command
 
+This is a historical plaintext-only workflow note. It remains useful for early one-factor validation, but final dissertation security-overhead runs now use the resumable factorial executor documented in `docs/final-campaign-operating-notes.md`.
+
 ## Goal
 
-This command runs the current plaintext artefact workflow end to end:
+This command ran the early plaintext artefact workflow end to end:
 
 1. deploy or resume the plaintext Kafka cluster setup
 2. execute the selected parameter sweep
