@@ -1,8 +1,10 @@
 # Plaintext Benchmark Workflow
 
+This is a historical note for the first runnable plaintext benchmark path. The final evaluation path now uses matched plaintext, TLS, and mTLS factorial phases plus a targeted consumer-side validation slice.
+
 ## Goal
 
-This workflow defines the first runnable benchmark path for the artefact: a plaintext producer performance sweep against the EC2 Kafka cluster.
+This workflow records the first runnable benchmark path for the artefact: a plaintext producer performance sweep against the EC2 Kafka cluster.
 
 ## Sequence
 
