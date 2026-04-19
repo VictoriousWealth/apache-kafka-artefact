@@ -14,14 +14,14 @@ The artefact supports this through:
 - multiple Kafka security configurations
 - automated experiment execution
 - structured result generation
-- resumable factorial benchmark execution for larger plaintext parameter spaces
+- resumable factorial benchmark execution for matched plaintext, TLS, and mTLS parameter spaces
 
 ### Quality of Process
 
 The artefact supports this through:
 
 - controlled one-factor-at-a-time methodology for early validation
-- repeatable benchmark baselines, sweeps, and selected factorial plans
+- repeatable benchmark baselines, sweeps, final factorial plans, and targeted consumer validation plans
 - explicit baseline and sweep definitions
 - traceable outputs and documentation
 
