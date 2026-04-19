@@ -1,5 +1,7 @@
 # Development Plan
 
+This is a historical planning document. It records the original implementation sequence used to build the artefact. For the current implemented state, use `README.md`, `docs/architecture.md`, `docs/final-campaign-operating-notes.md`, and `docs/result-schema.md`.
+
 ## Goal
 
 This document translates the artefact design into a concrete implementation sequence. The aim is to reach a working benchmark framework quickly while preserving dissertation alignment.
