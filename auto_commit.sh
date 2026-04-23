@@ -25,10 +25,10 @@ The log captures important details related to the benchmark for security overhea
 This addition will help in tracking and analyzing the performance of the topic." ;;
 
     */topic-delete.log)
-      subj="feat(log): add topic delete log for MTLS broker"
+      subj="feat(log): add topic delete log for TLS broker"
       body="This commit introduces a new log file for topic deletion events.
 
-The log will help in monitoring and debugging the MTLS broker's performance." ;;
+The log will help in monitoring and debugging the TLS broker's performance." ;;
 
     */producer-perf-*.log)
       if [[ $f =~ producer-perf-([0-9]+)\.log ]]; then
