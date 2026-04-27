@@ -26,6 +26,10 @@ The first deployment baseline assumes:
 
 These defaults are intended to provide a moderate-cost starting point for framework validation. They are not yet the final dissertation evaluation configuration.
 
+## Operational Note
+
+SSH access to the brokers and benchmark client is controlled by `allowed_ssh_cidrs` in `infrastructure/terraform/envs/dev/terraform.tfvars`. If the operator's public IP changes, EC2 instance health checks may remain green while all orchestration SSH commands time out. When that happens, update the allowlist to the current `/32` and, if immediate access is required, apply the matching change to the live security groups.
+
 ## Planned Topology
 
 ```text
