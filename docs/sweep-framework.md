@@ -66,7 +66,7 @@ config/factorials/security-overhead-final.json
 .orchestration/security-overhead-final-plan.jsonl
 ```
 
-The final campaign contains 5,184 planned rows across plaintext, TLS, and mTLS. The factorial executor records deterministic run IDs, started/completed ledgers, checkpoint state, and failure logs so long runs can be resumed after interruption.
+The final campaign contains 5,184 planned rows across plaintext, TLS, and mTLS. The factorial executor records deterministic run IDs, started/completed ledgers, checkpoint state, and failure logs so long runs can be resumed after interruption. Final campaign reporting should treat the completed ledger and per-run structured results as the authoritative dataset, while failure logs remain useful as an audit trail of transient execution problems.
 
 ## Current Implementation Boundary
 
