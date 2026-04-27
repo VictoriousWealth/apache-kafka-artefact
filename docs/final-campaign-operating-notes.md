@@ -80,19 +80,20 @@ The recommended order starts with `mtls` broker-5 because the live cluster is cu
 
 ## Current State
 
-Current in-progress final result set:
+Completed five-broker producer result sets:
 
 ```text
 results/factorial-final/security-overhead-final-mtls-broker5/
+results/factorial-final/security-overhead-final-tls-broker5/
 ```
 
-Current checkpoint:
+Current five-broker producer status:
 
-```text
-.orchestration/security-overhead-final-mtls-broker5.checkpoint
-```
+- `security-overhead-final-mtls-broker5`: `1296/1296` completed rows, `0` historical failure attempts.
+- `security-overhead-final-tls-broker5`: `1296/1296` completed rows, `2` historical failure attempts.
+- The TLS `failures.jsonl` entries both refer to the same final row, which was later rerun successfully.
 
-At the time this note was added, the mTLS broker-5 phase had started and the executor had validated the enriched metric pipeline.
+This means the five-broker `mtls` and `tls` producer phases are complete. The remaining final producer phases are `plaintext` broker-5 and the three-broker phases.
 
 ## Mode Deployment Rule
 
@@ -221,15 +222,32 @@ jq '{run_count, started_count, completed_count, failure_count}' \
   results/factorial-final/<result-set>/summary.json
 ```
 
-Expected healthy state:
+Expected healthy state during an active phase:
 
 ```text
 run_count == completed_count
-failure_count == 0
 telemetry_host_count == active broker count + 1
 ```
 
+For a freshly completed phase, `failure_count == 0` is ideal but not strictly required. If `completed.jsonl` reaches the planned row count and every completed run has a local `result.json`, the phase is complete even if `failures.jsonl` contains historical failed attempts that were later recovered by rerun.
+
 For five-broker phases, `telemetry_host_count` should normally be `6`. For three-broker phases, it should normally be `4`.
+
+## SSH Allowlist Note
+
+SSH access depends on `allowed_ssh_cidrs` in:
+
+```text
+infrastructure/terraform/envs/dev/terraform.tfvars
+```
+
+If the local public IP changes, the EC2 instances may remain healthy while all SSH commands time out. This can stall orchestration, telemetry collection, and reruns even though AWS still reports the instances as `running` with healthy instance checks. If that happens:
+
+1. Check the current public IP, for example with `curl -4 -s https://checkip.amazonaws.com`.
+2. Compare it against `allowed_ssh_cidrs`.
+3. Update the Terraform variable and, if immediate access is needed, update the live security-group SSH ingress rules as well.
+
+This issue occurred during the final TLS broker-5 row rerun and was resolved by updating the SSH allowlist to the current `/32`.
 
 ## What Not To Mix
 
