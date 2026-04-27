@@ -109,7 +109,7 @@ CHECKPOINT_FILE=.orchestration/security-overhead-final-plaintext-broker5.checkpo
 scripts/orchestration/run_factorial_plan.sh
 ```
 
-The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`.
+The factorial executor is resumable and records `started.jsonl`, `completed.jsonl`, `failures.jsonl` when failures occur, and a checkpoint file under `.orchestration/`. In the final campaign, `completed.jsonl` plus the presence of per-run `result.json` files should be treated as the authoritative completion record. `failures.jsonl` may contain historical failed attempts for rows that were later rerun successfully.
 
 TLS deployment is handled by:
 
@@ -375,42 +375,21 @@ Smoke result:
 
 ## Current Final Campaign State
 
-The first resumable final-campaign batch has been started for:
+The completed five-broker producer result sets are:
 
 ```text
 results/factorial-final/security-overhead-final-mtls-broker5/
+results/factorial-final/security-overhead-final-tls-broker5/
 ```
 
 Current state:
 
-- 26 completed mTLS five-broker final-campaign runs.
-- 0 recorded failures.
-- 26 checkpoint entries in `.orchestration/security-overhead-final-mtls-broker5.checkpoint`.
-- 26 local `result.json` files.
-- Broker count `5`.
-- replication factor `3`.
-- min in-sync replicas `3`.
-- 6 partitions.
-- 1,024 byte messages.
-- target throughput `1000 records/s`.
-- covered so far: `acks=1`, part of `acks=all`, `producer_count` values `1`, `6`, and `12`, and both `none` and `lz4` compression.
+- `security-overhead-final-mtls-broker5`: `1296/1296` completed rows, `0` recorded failure attempts.
+- `security-overhead-final-tls-broker5`: `1296/1296` completed rows, `2` historical failure attempts in `failures.jsonl`.
+- The two TLS failure entries refer to the same final row, which was later rerun successfully.
+- Both five-broker result sets now have full local `result.json` coverage for all completed rows.
 
-Observed summary across the first 26 mTLS final-campaign rows:
-
-| Metric | Value |
-|---|---:|
-| Mean throughput records/s | 999.380 |
-| Min throughput records/s | 998.083 |
-| Max throughput records/s | 999.760 |
-| Mean avg latency ms | 240.244 |
-| Min avg latency ms | 7.060 |
-| Max avg latency ms | 852.510 |
-| Mean max latency ms | 6933.000 |
-| Max observed max latency ms | 18790.000 |
-| Mean benchmark-client CPU % | 45.511 |
-| Mean broker CPU % | 8.009 |
-
-This is an in-progress partial final-campaign result set. It is suitable for checking pipeline stability and early trends, but final dissertation claims should use matched plaintext/TLS/mTLS rows across the intended campaign slices.
+This means the five-broker producer dataset is complete for `mtls` and `tls`. When reporting completion, use `completed.jsonl` and actual `result.json` presence as the authoritative record. Treat `failures.jsonl` as execution-history evidence rather than as a count of unresolved missing rows.
 
 ## Latest Security Comparison Smoke
 
