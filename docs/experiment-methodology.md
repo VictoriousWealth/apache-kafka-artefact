@@ -84,7 +84,7 @@ The framework also records producer-spread diagnostics for concurrent producer r
 
 Kafka producer-perf does not provide true per-record p95/p99 latency in the current runner. The parser therefore records interval-derived p95/p99 diagnostics from producer-perf interval summary lines. These must be described as interval-level latency diagnostics, not as true event-level latency percentiles.
 
-Run reliability is part of the measurement model. Phase summaries include started, completed, and failed run counts, and failed runs remain in `failures.jsonl` rather than being silently discarded.
+Run reliability is part of the measurement model. Phase summaries include started, completed, and failed run counts, and failed runs remain in `failures.jsonl` rather than being silently discarded. However, `failures.jsonl` should be interpreted as an execution-history log, not automatically as a count of unresolved missing rows. In the final campaign, a row could fail transiently, be rerun later, and still appear in `completed.jsonl` with a valid `result.json`.
 
 Consumer-side measurement is handled as a targeted validation slice. The consumer runner seeds a topic with producer-perf and then measures consumer-perf throughput, records consumed, rebalance time, and fetch time under the same `plaintext`, `tls`, and `mtls` client configurations. This is deliberately separate from the main producer factorial campaign because a full consumer factorial would multiply the campaign size without being necessary to answer the primary producer write-path overhead question.
 
