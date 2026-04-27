@@ -9,134 +9,199 @@
 
 set -euo pipefail
 
+extract_result_set () {
+  local f=$1
+
+  if [[ $f =~ ^results/[^/]+/([^/]+)/ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  else
+    printf 'unknown-result-set\n'
+  fi
+}
+
+extract_run_id () {
+  local f=$1
+
+  if [[ $f =~ ^results/[^/]+/[^/]+/([^/]+)/ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  else
+    printf 'unknown-run\n'
+  fi
+}
+
+extract_host_label () {
+  local f=$1
+
+  if [[ $f =~ /(broker-[0-9]+|benchmark-client)\.(jsonl|log)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  else
+    printf 'unknown-host\n'
+  fi
+}
+
 commit_msg () {
-  local f=$1 subj body trial broker
+  local f=$1 subj body trial broker result_set run_id host_label
+  result_set=$(extract_result_set "$f")
+  run_id=$(extract_run_id "$f")
+  host_label=$(extract_host_label "$f")
 
   case "$f" in
     auto_commit.sh)
       return 1 ;;
 
+    dissertation.pdf)
+      subj="docs(dissertation): update compiled dissertation PDF"
+      body="This commit updates the compiled dissertation PDF.
+
+The PDF reflects the latest dissertation edits, regenerated figures, refreshed tables, and updated supporting material.
+
+Keeping the compiled output in version control makes review and submission-state tracking easier." ;;
+
+    */topic-predelete.log)
+      subj="feat(cleanup): add topic pre-delete log for ${run_id}"
+      body="This commit adds the topic pre-delete log for run \`${run_id}\` in result set \`${result_set}\`.
+
+The log captures the cleanup step before topic recreation and helps diagnose stale-topic issues during repeated benchmark execution.
+
+This improves traceability for reruns, checkpoint recovery, and consumer/prodcer pipeline cleanup validation." ;;
+
     */topic-create.log)
-      subj="feat(logging): add topic creation log for security overhead"
-      body="This commit introduces a new log file that records the creation of a topic.
+      subj="feat(topic): add creation log for ${run_id}"
+      body="This commit adds the topic creation log for run \`${run_id}\` in result set \`${result_set}\`.
 
-The log captures important details related to the benchmark for security overhead.
+The log records the topic setup step that precedes benchmark execution.
 
-This addition will help in tracking and analyzing the performance of the topic." ;;
+This supports auditability of benchmark setup and topic lifecycle behaviour." ;;
 
     */topic-delete.log)
-      subj="feat(log): add topic delete log for TLS broker"
-      body="This commit introduces a new log file for topic deletion events.
+      subj="feat(topic): add delete log for ${run_id}"
+      body="This commit adds the topic deletion log for run \`${run_id}\` in result set \`${result_set}\`.
 
-The log will help in monitoring and debugging the TLS broker's performance." ;;
+The log records the cleanup step after benchmark execution and helps verify topic lifecycle correctness." ;;
 
     */producer-perf-*.log)
       if [[ $f =~ producer-perf-([0-9]+)\.log ]]; then
         trial=${BASH_REMATCH[1]}
-        subj="feat(log): add producer performance log for trial ${trial}"
-        body="This commit introduces a new log file capturing the performance metrics of the producer during trial ${trial}.
+        subj="feat(producer-log): add shard ${trial} log for ${run_id}"
+        body="This commit adds producer shard log \`${trial}\` for run \`${run_id}\` in result set \`${result_set}\`.
 
-The log includes details such as records sent, throughput, and latency statistics.
+The log captures the per-producer benchmark output for this concurrent producer run.
 
-These metrics are essential for analyzing the performance of the system under the specified conditions."
+This helps inspect producer spread, throughput balance, and per-process latency behaviour."
       else
         return 1
       fi ;;
 
     */producer-perf.log)
-      subj="feat(perf): add producer performance logging"
-      body="This update introduces detailed logging for producer performance.
+      subj="feat(producer): add aggregate perf log for ${run_id}"
+      body="This commit adds the aggregate producer performance log for run \`${run_id}\` in result set \`${result_set}\`.
 
-The logs include metrics such as records sent, throughput, and latency.
+The log includes records sent, throughput, and latency statistics for the full producer benchmark.
 
-These changes will help in monitoring and optimizing producer performance." ;;
+This is one of the primary raw artefacts used for parsing and final analysis." ;;
+
+    */producer-seed.log)
+      subj="feat(seed): add producer seed log for ${run_id}"
+      body="This commit adds the producer seed log for run \`${run_id}\` in result set \`${result_set}\`.
+
+The log records the producer-side topic seeding step that populates records before consumer measurement begins.
+
+This is needed to audit the read-path validation pipeline end to end." ;;
+
+    */consumer-perf.log)
+      subj="feat(consumer): add perf log for ${run_id}"
+      body="This commit adds the consumer performance log for run \`${run_id}\` in result set \`${result_set}\`.
+
+The log captures throughput and timing data produced during the consumer benchmark stage.
+
+These metrics are needed to compare secure transport overhead on the Kafka read path." ;;
 
     */broker-[1-5].jsonl)
       broker=$(echo "$f" | sed -E 's/.*broker-([0-9]+)\.jsonl/\1/')
-      case "$broker" in
-        1)
-          subj="feat(broker): add telemetry data for broker-1"
-          body="This update introduces a significant amount of telemetry data for broker-1.
+      subj="feat(telemetry): add broker-${broker} metrics for ${run_id}"
+      body="This commit adds broker-\`${broker}\` host telemetry for run \`${run_id}\` in result set \`${result_set}\`.
 
-The added data includes CPU, memory, and network usage metrics over time.
+The telemetry includes time-series CPU, memory, network, and disk metrics collected during benchmark execution.
 
-These metrics are crucial for monitoring and performance analysis."
-          ;;
-        2)
-          subj="feat(broker-2): add telemetry data for broker-2"
-          body="This update introduces a significant amount of telemetry data for broker-2.
-
-The added data includes CPU, memory, and network usage metrics over time.
-
-This information is crucial for monitoring and performance analysis."
-          ;;
-        3)
-          subj="feat(broker-3): add telemetry data for broker performance"
-          body="This update introduces new telemetry data for broker-3.
-
-The added lines include metrics such as CPU usage, memory usage, and network statistics.
-
-These metrics are crucial for monitoring and optimizing broker performance."
-          ;;
-        4)
-          subj="feat(telemetry): add broker-4 telemetry data"
-          body="This update introduces new telemetry data for broker-4.
-
-The data includes CPU, memory, and network statistics over time.
-
-This information is crucial for monitoring and performance analysis."
-          ;;
-        5)
-          subj="feat(broker-5): add telemetry data for broker 5"
-          body="This commit introduces new telemetry data entries for broker 5.
-
-The added data includes CPU, memory, and network statistics over time.
-
-This information is crucial for monitoring and performance analysis."
-          ;;
-      esac ;;
+This supports resource-level attribution of performance overhead on the broker side." ;;
 
     */benchmark-client.jsonl)
-      subj="feat(benchmark-client): add telemetry data for performance analysis"
-      body="This update introduces a significant amount of telemetry data.
+      subj="feat(telemetry): add benchmark-client metrics for ${run_id}"
+      body="This commit adds benchmark-client host telemetry for run \`${run_id}\` in result set \`${result_set}\`.
 
-The new entries include CPU, memory, and network statistics over time.
+The telemetry includes time-series CPU, memory, network, and disk metrics collected during the benchmark.
 
-This data will help in analyzing the performance of the benchmark client." ;;
+This supports analysis of client-side overhead under plaintext, TLS, or mTLS." ;;
 
     */benchmark-client.log)
-      subj="feat(benchmark-client): add new log file"
-      body="This commit introduces a new log file for the benchmark client.
+      subj="feat(telemetry): add benchmark-client collector log for ${run_id}"
+      body="This commit adds the benchmark-client telemetry collector log for run \`${run_id}\` in result set \`${result_set}\`.
 
-The log file will help in tracking performance metrics and debugging." ;;
+The log helps diagnose telemetry collection behaviour and supports debugging when host metrics look incomplete." ;;
 
     */metadata.json)
-      subj="feat(metadata): add metadata for security overhead trial"
-      body="This commit introduces a new metadata.json file.
+      subj="feat(metadata): add run metadata for ${run_id}"
+      body="This commit adds the metadata file for run \`${run_id}\` in result set \`${result_set}\`.
 
-It contains configuration details for the security overhead final factorial trial.
+It captures workload, security mode, broker configuration, and execution settings for this benchmark row.
 
-This will help in tracking the parameters used during the benchmarking." ;;
+This is the main provenance record used to trace results back to the executed configuration." ;;
 
     */result.json)
-      subj="feat(result.json): add detailed security overhead results"
-      body="This commit introduces a new JSON structure for the security overhead results.
+      subj="feat(result): add parsed metrics for ${run_id}"
+      body="This commit adds the parsed \`result.json\` for run \`${run_id}\` in result set \`${result_set}\`.
 
-The added data includes run configurations, cluster settings, and performance metrics.
+The file includes workload metadata, cluster settings, parsed benchmark metrics, and aggregated host telemetry.
 
-These changes will help in better analysis and reporting of the security overhead during trials." ;;
+This is one of the primary structured artefacts used for analysis and dissertation reporting." ;;
+
+    */export/table.csv)
+      subj="chore(export): add CSV table export for ${result_set}"
+      body="This commit adds a generated CSV table export for result set \`${result_set}\`.
+
+The export is intended for analysis, reporting, and dissertation table preparation." ;;
+
+    */export/table.tex)
+      subj="chore(export): add LaTeX table export for ${result_set}"
+      body="This commit adds a generated LaTeX table export for result set \`${result_set}\`.
+
+The export supports direct inclusion of benchmark summaries in the dissertation." ;;
+
+    */export/*.svg)
+      subj="chore(export): add SVG plot export for ${result_set}"
+      body="This commit adds a generated SVG plot export derived from result set \`${result_set}\`.
+
+The export supports dissertation figures and reproducible visual analysis." ;;
 
     */completed.jsonl)
-      subj="feat(results): append runs to completed.jsonl"
-      body="Adds new trial entries, expanding the dataset available for analysis." ;;
+      subj="chore(results): update completed ledger for ${result_set}"
+      body="This commit updates \`completed.jsonl\` for result set \`${result_set}\`.
+
+The ledger records which benchmark rows completed successfully and were copied back with parsed outputs.
+
+This file is part of the authoritative completion record for the campaign." ;;
 
     */started.jsonl)
-      subj="chore(run-tracker): update started.jsonl"
-      body="Synchronises the run tracker with the newest experiment batches." ;;
+      subj="chore(results): update started ledger for ${result_set}"
+      body="This commit updates \`started.jsonl\` for result set \`${result_set}\`.
+
+The ledger records which benchmark rows have begun execution under the orchestration pipeline.
+
+This supports checkpointed execution and recovery after interruption." ;;
+
+    */failures.jsonl)
+      subj="chore(results): update failure ledger for ${result_set}"
+      body="This commit updates \`failures.jsonl\` for result set \`${result_set}\`.
+
+The ledger records failed or timed-out benchmark attempts as execution-history evidence.
+
+Rows listed here may later be rerun successfully and should be interpreted alongside the completion ledger." ;;
 
     */summary.csv|*/summary.json)
-      subj="chore(summary): update aggregate summaries"
-      body="Regenerates summary files to reflect the latest set of trials." ;;
+      subj="chore(summary): refresh aggregate summary for ${result_set}"
+      body="This commit refreshes an aggregate summary file for result set \`${result_set}\`.
+
+The summary reflects the latest completed benchmark rows and supports downstream analysis and comparison export." ;;
 
     *) return 1 ;;
   esac
