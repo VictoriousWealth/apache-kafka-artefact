@@ -58,6 +58,8 @@ Where feasible:
 - record summary statistics later during analysis
 - note anomalies rather than silently discarding them
 
+For long-running campaigns, retain both the completion ledger and the failure ledger. A row that fails transiently and is later rerun successfully should remain traceable in the execution history rather than being erased from the audit trail.
+
 ## Reproducibility Boundary
 
 The goal is reproducible benchmarking procedure, not bit-identical measurements. Small runtime variance is expected, but the workflow, configuration, and interpretation should remain stable and auditable.
