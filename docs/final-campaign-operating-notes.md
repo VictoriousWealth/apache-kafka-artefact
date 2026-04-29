@@ -93,7 +93,23 @@ Current five-broker producer status:
 - `security-overhead-final-tls-broker5`: `1296/1296` completed rows, `2` historical failure attempts.
 - The TLS `failures.jsonl` entries both refer to the same final row, which was later rerun successfully.
 
-This means the five-broker `mtls` and `tls` producer phases are complete. The remaining final producer phases are `plaintext` broker-5 and the three-broker phases.
+This means the five-broker `mtls` and `tls` producer phases are complete.
+
+The current active five-broker plaintext producer phase is:
+
+```text
+results/factorial-final/security-overhead-final-plaintext-broker5/
+```
+
+It is still in progress and should be treated as a live checkpointed phase rather than a finished dataset snapshot. The remaining final producer phases after plaintext broker-5 are the three-broker phases.
+
+During this live plaintext phase, `failures.jsonl` may accumulate historical failed attempts while reruns continue. Do not treat these entries as final unresolved missing rows unless the same run identifiers are still absent from `completed.jsonl` and do not have local `result.json` files once the phase is complete.
+
+The targeted five-broker consumer validation slice is now complete across all three security modes:
+
+- `consumer-security-slice-plaintext-broker5`: `24/24`
+- `consumer-security-slice-tls-broker5`: `24/24`, with `2` historical failure attempts later recovered by rerun
+- `consumer-security-slice-mtls-broker5`: `24/24`
 
 ## Mode Deployment Rule
 
@@ -230,6 +246,8 @@ telemetry_host_count == active broker count + 1
 ```
 
 For a freshly completed phase, `failure_count == 0` is ideal but not strictly required. If `completed.jsonl` reaches the planned row count and every completed run has a local `result.json`, the phase is complete even if `failures.jsonl` contains historical failed attempts that were later recovered by rerun.
+
+For a live in-progress phase such as `security-overhead-final-plaintext-broker5`, use the same authoritative rule for already completed rows, but do not treat the phase as finished until the planned row count is reached.
 
 For five-broker phases, `telemetry_host_count` should normally be `6`. For three-broker phases, it should normally be `4`.
 
