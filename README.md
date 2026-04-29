@@ -382,14 +382,22 @@ results/factorial-final/security-overhead-final-mtls-broker5/
 results/factorial-final/security-overhead-final-tls-broker5/
 ```
 
-Current state:
+Current completed state:
 
 - `security-overhead-final-mtls-broker5`: `1296/1296` completed rows, `0` recorded failure attempts.
 - `security-overhead-final-tls-broker5`: `1296/1296` completed rows, `2` historical failure attempts in `failures.jsonl`.
 - The two TLS failure entries refer to the same final row, which was later rerun successfully.
 - Both five-broker result sets now have full local `result.json` coverage for all completed rows.
 
-This means the five-broker producer dataset is complete for `mtls` and `tls`. When reporting completion, use `completed.jsonl` and actual `result.json` presence as the authoritative record. Treat `failures.jsonl` as execution-history evidence rather than as a count of unresolved missing rows.
+The current five-broker plaintext producer phase is:
+
+```text
+results/factorial-final/security-overhead-final-plaintext-broker5/
+```
+
+This phase is still in progress. Treat `completed.jsonl` and the presence of per-run `result.json` files as the authoritative completion record for the live phase as it advances. Treat `failures.jsonl` as execution-history evidence rather than as a count of unresolved missing rows.
+
+At this stage, the plaintext five-broker phase has accumulated historical failed attempts in `failures.jsonl`. These should be treated as row-level execution history during an active campaign, not as final unresolved missing results unless the corresponding rows remain absent from `completed.jsonl` and lack local `result.json` files after the phase ends.
 
 ## Latest Security Comparison Smoke
 
@@ -424,40 +432,21 @@ This is a smoke comparison only. It validates the comparison pipeline, but final
 
 ## Current Consumer Benchmark State
 
-The current canonical mTLS consumer-slice result set is:
+The canonical five-broker consumer-slice result sets are:
 
 ```text
+results/consumer-slice/consumer-security-slice-plaintext-broker5/
+results/consumer-slice/consumer-security-slice-tls-broker5/
 results/consumer-slice/consumer-security-slice-mtls-broker5/
 ```
 
-Current state:
+Current completed state:
 
-- 10 completed mTLS five-broker consumer-slice runs.
-- 0 recorded failures.
-- 10 local `result.json` files.
-- 14 remaining mTLS consumer-slice runs for this security mode.
-- 5 brokers.
-- replication factor `3`.
-- min in-sync replicas `3`.
-- 6 partitions.
-- 1,024 byte messages so far.
-- seed producer target throughput `1000 records/s`.
-- covered so far: `consumer_count` values `1` and `6`, and both `none` and `lz4` compression.
+- `consumer-security-slice-plaintext-broker5`: `24/24` completed rows, `0` recorded failure attempts.
+- `consumer-security-slice-tls-broker5`: `24/24` completed rows, `2` historical failure attempts in `failures.jsonl`.
+- `consumer-security-slice-mtls-broker5`: `24/24` completed rows, `0` recorded failure attempts.
 
-Observed summary across the first 10 canonical mTLS consumer-slice rows:
-
-| Metric | Value |
-|---|---:|
-| Total records consumed | 1,000,000 |
-| Mean consumer throughput records/s | 27,680.231 |
-| Min consumer throughput records/s | 22,021.581 |
-| Max consumer throughput records/s | 32,185.388 |
-| Mean consumer throughput MB/s | 27.031 |
-| Mean benchmark-client CPU % | 18.262 |
-| Mean broker CPU % | 5.876 |
-| Telemetry host count | 6 |
-
-This is an in-progress targeted consumer-side validation slice. It should be reported separately from the producer-side 5,184-run final campaign.
+This means the targeted five-broker consumer validation slice is complete across all three security modes. It should still be reported separately from the producer-side 5,184-run final campaign because it is a deliberately smaller read-path validation set rather than a full consumer factorial study.
 
 ## Latest Consumer Smoke Validation
 
