@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "run_id": "security-overhead-final-factorial-tls-b3-rf3-isr3-msg1024-tps10000-batch131072-acks1-prod1-compnone-trial1",
+  "security_mode": "tls",
+  "baseline_name": "security-overhead-final-factorial",
+  "sweep_name": "security-overhead-final-factorial",
+  "sweep_variable": "factorial_config",
+  "sweep_value": "security-overhead-final-factorial-tls-b3-rf3-isr3-msg1024-tps10000-batch131072-acks1-prod1-compnone-trial1",
+  "trial_index": 1,
+  "trial_count": 3,
+  "topic": "benchmark-topic-security-overhead-final-factorial-tls-b3-rf3-isr3-msg1024-tps10000-batch131072-acks1-prod1-compnone-trial1",
+  "cluster": {
+    "bootstrap_servers": "10.20.1.69:9094,10.20.1.238:9094,10.20.1.91:9094",
+    "broker_count": 3,
+    "partitions": 6,
+    "replication_factor": 3,
+    "min_insync_replicas": 3
+  },
+  "run_config": {
+    "num_records": 100000,
+    "record_size_bytes": 1024,
+    "throughput_limit_records_per_sec": 10000,
+    "producer_count": 1,
+    "consumer_count": 1,
+    "batch_size": 131072,
+    "linger_ms": 5,
+    "acks": "1",
+    "compression_type": "none"
+  },
+  "metrics": {
+    "records_sent": 100000,
+    "throughput_records_per_sec": 9971.083857,
+    "throughput_mb_per_sec": 9.74,
+    "avg_latency_ms": 111.93,
+    "max_latency_ms": 1033.0,
+    "producer_count_observed": 1,
+    "producer_throughput_records_per_sec_min": 9971.083857,
+    "producer_throughput_records_per_sec_max": 9971.083857,
+    "producer_avg_latency_ms_min": 111.93,
+    "producer_avg_latency_ms_max": 111.93,
+    "interval_summary_count": 1,
+    "interval_avg_latency_ms_p95": 219.7,
+    "interval_avg_latency_ms_p99": 219.7,
+    "interval_max_latency_ms_p95": 1033.0,
+    "interval_max_latency_ms_p99": 1033.0,
+    "producer_summaries": [
+      {
+        "summary_line": "100000 records sent, 9971.083857 records/sec (9.74 MB/sec), 111.93 ms avg latency, 1033.00 ms max latency, 6 ms 50th, 618 ms 95th, 790 ms 99th, 892 ms 99.9th.",
+        "records_sent": 100000,
+        "throughput_records_per_sec": 9971.083857,
+        "throughput_mb_per_sec": 9.74,
+        "avg_latency_ms": 111.93,
+        "max_latency_ms": 1033.0
+      }
+    ],
+    "interval_summaries": [
+      {
+        "summary_line": "49952 records sent, 9982.4 records/sec (9.75 MB/sec), 219.7 ms avg latency, 1033.0 ms max latency.",
+        "records_sent": 49952,
+        "throughput_records_per_sec": 9982.4,
+        "throughput_mb_per_sec": 9.75,
+        "avg_latency_ms": 219.7,
+        "max_latency_ms": 1033.0,
+        "producer_index": 1,
+        "producer_count": 1
+      }
+    ]
+  },
+  "host_telemetry": {
+    "enabled": true,
+    "sample_interval_seconds": null,
+    "host_count": 4,
+    "hosts": [
+      {
+        "role": "benchmark_client",
+        "host_id": "benchmark-client",
+        "sample_count": 21,
+        "started_at": "2026-05-02T02:28:55Z",
+        "ended_at": "2026-05-02T02:29:16Z",
+        "cpu_percent_mean": 49.617142857142845,
+        "cpu_percent_max": 98.54,
+        "memory_used_percent_mean": 10.085238095238093,
+        "memory_used_percent_max": 11.23,
+        "network_rx_bytes_delta": 642852,
+        "network_tx_bytes_delta": 105034148,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 30512,
+        "source_file": "benchmark-client.jsonl"
+      },
+      {
+        "role": "broker",
+        "host_id": "broker-1",
+        "sample_count": 22,
+        "started_at": "2026-05-02T02:28:56Z",
+        "ended_at": "2026-05-02T02:29:18Z",
+        "cpu_percent_mean": 4.987272727272726,
+        "cpu_percent_max": 11.94,
+        "memory_used_percent_mean": 23.265454545454553,
+        "memory_used_percent_max": 23.33,
+        "network_rx_bytes_delta": 105217880,
+        "network_tx_bytes_delta": 71548388,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 15800,
+        "source_file": "broker-1.jsonl"
+      },
+      {
+        "role": "broker",
+        "host_id": "broker-2",
+        "sample_count": 24,
+        "started_at": "2026-05-02T02:28:57Z",
+        "ended_at": "2026-05-02T02:29:21Z",
+        "cpu_percent_mean": 6.5925,
+        "cpu_percent_max": 25.81,
+        "memory_used_percent_mean": 23.037499999999994,
+        "memory_used_percent_max": 23.1,
+        "network_rx_bytes_delta": 105214124,
+        "network_tx_bytes_delta": 68962378,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 219008,
+        "source_file": "broker-2.jsonl"
+      },
+      {
+        "role": "broker",
+        "host_id": "broker-3",
+        "sample_count": 26,
+        "started_at": "2026-05-02T02:28:58Z",
+        "ended_at": "2026-05-02T02:29:24Z",
+        "cpu_percent_mean": 4.660384615384615,
+        "cpu_percent_max": 12.56,
+        "memory_used_percent_mean": 22.955000000000002,
+        "memory_used_percent_max": 23.04,
+        "network_rx_bytes_delta": 105199573,
+        "network_tx_bytes_delta": 71661876,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 233864,
+        "source_file": "broker-3.jsonl"
+      }
+    ],
+    "broker_cpu_percent_mean": 5.41338578088578,
+    "broker_cpu_percent_max_mean": 16.77,
+    "benchmark_client_cpu_percent_mean": 49.617142857142845,
+    "broker_memory_used_percent_mean": 23.085984848484852,
+    "benchmark_client_memory_used_percent_mean": 10.085238095238093,
+    "broker_network_rx_bytes_delta_mean": 105210525.66666667,
+    "broker_network_tx_bytes_delta_mean": 70724214.0,
+    "broker_network_rx_bytes_delta_total": 315631577,
+    "broker_network_tx_bytes_delta_total": 212172642,
+    "benchmark_client_network_rx_bytes_delta": 642852,
+    "benchmark_client_network_tx_bytes_delta": 105034148,
+    "broker_disk_read_sectors_delta_mean": 0.0,
+    "broker_disk_write_sectors_delta_mean": 156224.0,
+    "broker_disk_read_sectors_delta_total": 0,
+    "broker_disk_write_sectors_delta_total": 468672,
+    "benchmark_client_disk_read_sectors_delta": 0,
+    "benchmark_client_disk_write_sectors_delta": 30512,
+    "source_directory": "host-telemetry"
+  },
+  "files": {
+    "raw_output": "/var/lib/kafka-client/results/security-overhead-final-factorial-tls-b3-rf3-isr3-msg1024-tps10000-batch131072-acks1-prod1-compnone-trial1/producer-perf.log",
+    "metadata": "metadata.json"
+  },
+  "raw_summary_lines": [
+    "100000 records sent, 9971.083857 records/sec (9.74 MB/sec), 111.93 ms avg latency, 1033.00 ms max latency, 6 ms 50th, 618 ms 95th, 790 ms 99th, 892 ms 99.9th."
+  ]
+}
