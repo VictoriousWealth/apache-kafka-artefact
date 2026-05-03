@@ -52,6 +52,7 @@ If a new script is added, document it here or in a more specific README and link
 | `scripts/analysis/export_security_comparison.py` | Joins matched plaintext/TLS/mTLS summary rows and exports security-overhead CSV tables, LaTeX tables, and SVG plots. |
 | `scripts/analysis/export_final_phase_comparison.sh` | Convenience exporter for canonical final producer phases. It locates broker-3 or broker-5 plaintext/TLS/mTLS summaries and calls the security comparison exporter. |
 | `scripts/analysis/export_consumer_slice_comparison.sh` | Convenience exporter for the targeted consumer validation slice. It locates canonical consumer plaintext/TLS/mTLS summaries and calls the security comparison exporter. |
+| `scripts/analysis/export_comprehensive_final_results.py` | Generates a broad final result pack from producer and consumer summaries, including combined CSV data, LaTeX-ready tables, PNG/PDF figures, and a manifest. |
 
 ## Remote Kafka Bootstrap Scripts
 
