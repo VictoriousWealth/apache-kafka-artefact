@@ -168,21 +168,21 @@ scripts/orchestration/run_factorial_plan.sh
 
 The executor provides deterministic run IDs, checkpoint/resume support, broker-count filtering, max-run limits for smoke testing, dry-run mode, failure logging, aggregation, and export.
 
-## Current Execution State
+## Historical Execution State
 
-Current production result set:
+Historical validation result set:
 
 ```text
 results/factorial/plaintext-requested-full-broker5/
 ```
 
-Current checkpoint:
+Historical validation checkpoint:
 
 ```text
 .orchestration/plaintext-requested-full-broker5.checkpoint
 ```
 
-As of the latest run:
+This plaintext-only validation slice produced:
 
 | Item | Count |
 |---|---:|
@@ -228,7 +228,7 @@ Summary across the first 100 runs:
 
 Interpretation:
 
-The first 100 rows are valid as a pipeline validation and partial plaintext baseline. They show that the cluster consistently reaches the 1000 records/s target under this low-message-size slice, while latency increases substantially when producer concurrency rises. They are not a complete plaintext evaluation because the result set does not yet cover larger message sizes, higher target throughput values, RF=5, minISR=4, or the three-broker phase.
+The first 100 rows are valid as pipeline validation and partial plaintext baseline evidence. They show that the cluster consistently reached the 1000 records/s target under this low-message-size slice, while latency increased substantially when producer concurrency rose. They are not the final plaintext evaluation because the final security-overhead evidence has since moved to `config/factorials/security-overhead-final.json`.
 
 Validated executor smoke run:
 
@@ -246,7 +246,7 @@ Smoke result:
 | Avg latency ms | 4.22 |
 | Max latency ms | 496.00 |
 
-Current implementation status:
+Implemented status:
 
 1. `broker_count=5` is provisioned in the dev AWS environment.
 2. `producer_count=6` and `producer_count=12` are supported by launching concurrent `kafka-producer-perf-test.sh` processes.
@@ -299,7 +299,7 @@ scripts/orchestration/run_factorial_plan.sh
 
 The phase-preparation script uses `RESET_KAFKA_STORAGE=true` by default so each broker-count phase starts from a clean Kafka log state.
 
-Current live broker addresses:
+Historical five-broker validation addresses:
 
 | Broker | Public IP | Private Kafka IP |
 |---:|---|---|
@@ -316,6 +316,8 @@ RESET_KAFKA_STORAGE=true
 ```
 
 This reset remote Kafka broker log data only. Local benchmark results were not removed.
+
+The live final-campaign environment has since moved to the broker-3 phase, so only brokers 1 to 3 are active for current broker-3 result sets. Treat broker addresses in this historical plaintext-only note as validation context, not as the current infrastructure inventory.
 
 ## Concurrent Producer Smoke Test
 
