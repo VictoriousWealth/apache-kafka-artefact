@@ -128,11 +128,6 @@ Exit criteria:
 
 - at least one justified one-factor-at-a-time secondary sweep is runnable
 
-## Immediate Priority
+## Historical Priority
 
-The next implementation work should focus on:
-
-1. finalising AWS environment assumptions
-2. adding instance bootstrap scripts
-3. defining the first baseline and sweep config files
-4. deciding whether the benchmark clients will be Kafka-native tools, custom scripts, or a hybrid approach
+The original immediate priorities were to finalise AWS assumptions, add bootstrap scripts, define baseline/sweep configs, and choose the benchmark tooling approach. These items have since been implemented. Current execution and remaining work are tracked in `README.md` and `docs/final-campaign-operating-notes.md`.
