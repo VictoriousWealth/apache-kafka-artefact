@@ -46,4 +46,4 @@ Each sweep directory contains:
 
 ## Current Boundary
 
-This command currently supports only plaintext execution. TLS and mTLS should later plug into the same top-level workflow rather than adding separate user-facing commands.
+This command remains plaintext-only and should be treated as a historical validation path. TLS and mTLS final-campaign runs are handled by `scripts/orchestration/run_factorial_plan.sh` after deploying the matching Kafka security mode.
