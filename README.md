@@ -39,7 +39,7 @@ The primary dissertation question is:
 
 > What is the performance overhead introduced by zero-trust-inspired security mechanisms, particularly mTLS, in high-throughput Kafka-based distributed systems?
 
-The artefact supports that question by creating repeatable Kafka deployments and running controlled synthetic workloads. Early validation used one-factor-at-a-time sweeps; the current plaintext evaluation also supports factorial benchmark plans.
+The artefact supports that question by creating repeatable Kafka deployments and running controlled synthetic workloads. Early validation used one-factor-at-a-time sweeps; the final evaluation uses factorial benchmark plans across plaintext, TLS, and mTLS.
 
 ## System Overview
 
@@ -52,7 +52,7 @@ The system has five main layers:
 - `config/factorials/`: defines larger factorial experiment spaces.
 - `scripts/orchestration/`: connects Terraform outputs, remote bootstrap, benchmark execution, parsing, aggregation, and export.
 
-Current AWS topology:
+Supported AWS topology:
 
 ```text
 AWS VPC
@@ -66,6 +66,8 @@ AWS VPC
         +-- kafka-broker-5
         +-- benchmark-client
 ```
+
+The live final-campaign environment is currently in the three-broker phase, using `kafka-broker-1` to `kafka-broker-3` plus the benchmark client. The five-broker topology is retained in Terraform and historical final-campaign evidence.
 
 The scripts use public IPs for SSH access, but Kafka broker traffic uses private VPC IPs. This is important because Kafka quorum, advertised listeners, benchmark bootstrap servers, and readiness checks all run over the private addresses.
 
@@ -125,7 +127,7 @@ SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_mtls_cluster.sh
 ```
 
-The current live AWS cluster was last deployed in mTLS mode, so run plaintext or TLS phases only after redeploying the matching cluster mode.
+The current live AWS cluster was last deployed in mTLS mode for the broker-3 final phase, so run plaintext or TLS rows only after redeploying the matching cluster mode.
 
 ## Parameter Sweep Configuration
 
@@ -375,29 +377,18 @@ Smoke result:
 
 ## Current Final Campaign State
 
-The completed five-broker producer result sets are:
+Producer final-campaign state snapshot, captured on 2026-05-03 after the broker-3 mTLS phase had started:
 
-```text
-results/factorial-final/security-overhead-final-mtls-broker5/
-results/factorial-final/security-overhead-final-tls-broker5/
-```
+| Result set | Completed rows | Status |
+|---|---:|---|
+| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-tls-broker5` | `1296/1296` | Complete, with historical recovered TLS failure attempts |
+| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
+| `security-overhead-final-tls-broker3` | `432/432` | Complete |
+| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
 
-Current completed state:
-
-- `security-overhead-final-mtls-broker5`: `1296/1296` completed rows, `0` recorded failure attempts.
-- `security-overhead-final-tls-broker5`: `1296/1296` completed rows, `2` historical failure attempts in `failures.jsonl`.
-- The two TLS failure entries refer to the same final row, which was later rerun successfully.
-- Both five-broker result sets now have full local `result.json` coverage for all completed rows.
-
-The current five-broker plaintext producer phase is:
-
-```text
-results/factorial-final/security-overhead-final-plaintext-broker5/
-```
-
-This phase is still in progress. Treat `completed.jsonl` and the presence of per-run `result.json` files as the authoritative completion record for the live phase as it advances. Treat `failures.jsonl` as execution-history evidence rather than as a count of unresolved missing rows.
-
-At this stage, the plaintext five-broker phase has accumulated historical failed attempts in `failures.jsonl`. These should be treated as row-level execution history during an active campaign, not as final unresolved missing results unless the corresponding rows remain absent from `completed.jsonl` and lack local `result.json` files after the phase ends.
+Use `completed.jsonl` plus local per-run `result.json` presence as the authoritative completion record. Treat `failures.jsonl` as execution-history evidence rather than as unresolved missing rows when the same run identifiers were later rerun successfully.
 
 ## Latest Security Comparison Smoke
 
@@ -551,6 +542,7 @@ Detailed supporting documentation:
 - `docs/industry-kafka-setups.md`: source-derived industry Kafka setup evidence and practical benchmark profiles.
 - `docs/sweep-framework.md`: parameter sweep design.
 - `docs/export-layer.md`: tables and plot export process.
+- `docs/script-index.md`: complete index of repository scripts and their responsibilities.
 - `docs/result-schema.md`: result files, metric definitions, telemetry fields, and comparison schema.
 - `docs/reproducibility.md`: rerun and environment guidance.
 - `docs/thesis-mapping.md`: mapping from artefact to dissertation chapters/rubric.
@@ -561,8 +553,8 @@ Detailed supporting documentation:
 
 ## Next Development Steps
 
-1. Run larger matched plaintext, TLS, and mTLS final-campaign phases.
-2. Use the comparison export for each completed phase.
-3. Add cross-phase comparison for broker-count 3 vs 5.
-4. Run the targeted consumer-side slice across plaintext, TLS, and mTLS.
-5. Add certificate rotation measurement if time allows.
+1. Let the active broker-3 mTLS producer phase finish.
+2. Aggregate and export broker-3 matched plaintext/TLS/mTLS comparisons.
+3. Regenerate broker-5 and broker-3 comparison artefacts for dissertation tables and plots.
+4. Update dissertation Chapter 4 with the completed broker-count comparison.
+5. Add certificate rotation measurement only if time remains.
