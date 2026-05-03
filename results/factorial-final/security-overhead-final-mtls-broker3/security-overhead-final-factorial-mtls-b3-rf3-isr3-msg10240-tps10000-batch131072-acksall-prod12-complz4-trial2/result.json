@@ -1,0 +1,954 @@
+{
+  "schema_version": "1.0",
+  "run_id": "security-overhead-final-factorial-mtls-b3-rf3-isr3-msg10240-tps10000-batch131072-acksall-prod12-complz4-trial2",
+  "security_mode": "mtls",
+  "baseline_name": "security-overhead-final-factorial",
+  "sweep_name": "security-overhead-final-factorial",
+  "sweep_variable": "factorial_config",
+  "sweep_value": "security-overhead-final-factorial-mtls-b3-rf3-isr3-msg10240-tps10000-batch131072-acksall-prod12-complz4-trial2",
+  "trial_index": 2,
+  "trial_count": 3,
+  "topic": "benchmark-topic-security-overhead-final-factorial-mtls-b3-rf3-isr3-msg10240-tps10000-batch131072-acksall-prod12-complz4-trial2",
+  "cluster": {
+    "bootstrap_servers": "10.20.1.69:9094,10.20.1.238:9094,10.20.1.91:9094",
+    "broker_count": 3,
+    "partitions": 6,
+    "replication_factor": 3,
+    "min_insync_replicas": 3
+  },
+  "run_config": {
+    "num_records": 100000,
+    "record_size_bytes": 10240,
+    "throughput_limit_records_per_sec": 10000,
+    "producer_count": 12,
+    "consumer_count": 1,
+    "batch_size": 131072,
+    "linger_ms": 5,
+    "acks": "all",
+    "compression_type": "lz4"
+  },
+  "metrics": {
+    "records_sent": 100000,
+    "throughput_records_per_sec": 2139.968508,
+    "throughput_mb_per_sec": 20.9,
+    "avg_latency_ms": 8453.9724781,
+    "max_latency_ms": 21119.0,
+    "producer_count_observed": 12,
+    "producer_throughput_records_per_sec_min": 171.503252,
+    "producer_throughput_records_per_sec_max": 186.865176,
+    "producer_avg_latency_ms_min": 7369.95,
+    "producer_avg_latency_ms_max": 9357.23,
+    "interval_summary_count": 70,
+    "interval_avg_latency_ms_p95": 15057.524999999985,
+    "interval_avg_latency_ms_p99": 19935.02,
+    "interval_max_latency_ms_p95": 20171.85,
+    "interval_max_latency_ms_p99": 20738.120000000003,
+    "producer_summaries": [
+      {
+        "summary_line": "8334 records sent, 172.868699 records/sec (1.69 MB/sec), 9017.59 ms avg latency, 19970.00 ms max latency, 8740 ms 50th, 12530 ms 95th, 13217 ms 99th, 13986 ms 99.9th.",
+        "records_sent": 8334,
+        "throughput_records_per_sec": 172.868699,
+        "throughput_mb_per_sec": 1.69,
+        "avg_latency_ms": 9017.59,
+        "max_latency_ms": 19970.0
+      },
+      {
+        "summary_line": "8333 records sent, 179.819167 records/sec (1.76 MB/sec), 8119.28 ms avg latency, 17445.00 ms max latency, 7874 ms 50th, 10292 ms 95th, 11953 ms 99th, 13054 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 179.819167,
+        "throughput_mb_per_sec": 1.76,
+        "avg_latency_ms": 8119.28,
+        "max_latency_ms": 17445.0
+      },
+      {
+        "summary_line": "8333 records sent, 185.751544 records/sec (1.81 MB/sec), 7963.87 ms avg latency, 16992.00 ms max latency, 7749 ms 50th, 10686 ms 95th, 11309 ms 99th, 11906 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 185.751544,
+        "throughput_mb_per_sec": 1.81,
+        "avg_latency_ms": 7963.87,
+        "max_latency_ms": 16992.0
+      },
+      {
+        "summary_line": "8333 records sent, 184.350250 records/sec (1.80 MB/sec), 7369.95 ms avg latency, 19964.00 ms max latency, 7510 ms 50th, 11103 ms 95th, 12184 ms 99th, 12644 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 184.35025,
+        "throughput_mb_per_sec": 1.8,
+        "avg_latency_ms": 7369.95,
+        "max_latency_ms": 19964.0
+      },
+      {
+        "summary_line": "8334 records sent, 176.923893 records/sec (1.73 MB/sec), 8285.27 ms avg latency, 17823.00 ms max latency, 8423 ms 50th, 10817 ms 95th, 11553 ms 99th, 12340 ms 99.9th.",
+        "records_sent": 8334,
+        "throughput_records_per_sec": 176.923893,
+        "throughput_mb_per_sec": 1.73,
+        "avg_latency_ms": 8285.27,
+        "max_latency_ms": 17823.0
+      },
+      {
+        "summary_line": "8334 records sent, 181.655696 records/sec (1.77 MB/sec), 8408.41 ms avg latency, 18048.00 ms max latency, 8544 ms 50th, 11314 ms 95th, 11985 ms 99th, 13059 ms 99.9th.",
+        "records_sent": 8334,
+        "throughput_records_per_sec": 181.655696,
+        "throughput_mb_per_sec": 1.77,
+        "avg_latency_ms": 8408.41,
+        "max_latency_ms": 18048.0
+      },
+      {
+        "summary_line": "8334 records sent, 186.865176 records/sec (1.82 MB/sec), 7685.78 ms avg latency, 20337.00 ms max latency, 7791 ms 50th, 12516 ms 95th, 13563 ms 99th, 14401 ms 99.9th.",
+        "records_sent": 8334,
+        "throughput_records_per_sec": 186.865176,
+        "throughput_mb_per_sec": 1.82,
+        "avg_latency_ms": 7685.78,
+        "max_latency_ms": 20337.0
+      },
+      {
+        "summary_line": "8333 records sent, 174.732648 records/sec (1.71 MB/sec), 9155.58 ms avg latency, 20567.00 ms max latency, 9017 ms 50th, 12718 ms 95th, 14294 ms 99th, 14996 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 174.732648,
+        "throughput_mb_per_sec": 1.71,
+        "avg_latency_ms": 9155.58,
+        "max_latency_ms": 20567.0
+      },
+      {
+        "summary_line": "8333 records sent, 173.117274 records/sec (1.69 MB/sec), 8589.65 ms avg latency, 20397.00 ms max latency, 8578 ms 50th, 12008 ms 95th, 12513 ms 99th, 12830 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 173.117274,
+        "throughput_mb_per_sec": 1.69,
+        "avg_latency_ms": 8589.65,
+        "max_latency_ms": 20397.0
+      },
+      {
+        "summary_line": "8333 records sent, 174.655740 records/sec (1.71 MB/sec), 9357.23 ms avg latency, 21119.00 ms max latency, 9011 ms 50th, 12597 ms 95th, 13422 ms 99th, 14358 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 174.65574,
+        "throughput_mb_per_sec": 1.71,
+        "avg_latency_ms": 9357.23,
+        "max_latency_ms": 21119.0
+      },
+      {
+        "summary_line": "8333 records sent, 177.725169 records/sec (1.74 MB/sec), 8873.14 ms avg latency, 19922.00 ms max latency, 8761 ms 50th, 12314 ms 95th, 13272 ms 99th, 14151 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 177.725169,
+        "throughput_mb_per_sec": 1.74,
+        "avg_latency_ms": 8873.14,
+        "max_latency_ms": 19922.0
+      },
+      {
+        "summary_line": "8333 records sent, 171.503252 records/sec (1.67 MB/sec), 8621.97 ms avg latency, 19714.00 ms max latency, 8748 ms 50th, 11979 ms 95th, 12559 ms 99th, 13116 ms 99.9th.",
+        "records_sent": 8333,
+        "throughput_records_per_sec": 171.503252,
+        "throughput_mb_per_sec": 1.67,
+        "avg_latency_ms": 8621.97,
+        "max_latency_ms": 19714.0
+      }
+    ],
+    "interval_summaries": [
+      {
+        "summary_line": "1 records sent, 0.0 records/sec (0.00 MB/sec), 4207.0 ms avg latency, 4207.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.0,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 4207.0,
+        "max_latency_ms": 4207.0,
+        "producer_index": 1,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "335 records sent, 63.5 records/sec (0.62 MB/sec), 7040.3 ms avg latency, 19970.0 ms max latency.",
+        "records_sent": 335,
+        "throughput_records_per_sec": 63.5,
+        "throughput_mb_per_sec": 0.62,
+        "avg_latency_ms": 7040.3,
+        "max_latency_ms": 19970.0,
+        "producer_index": 1,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "945 records sent, 181.7 records/sec (1.77 MB/sec), 9385.9 ms avg latency, 11696.0 ms max latency.",
+        "records_sent": 945,
+        "throughput_records_per_sec": 181.7,
+        "throughput_mb_per_sec": 1.77,
+        "avg_latency_ms": 9385.9,
+        "max_latency_ms": 11696.0,
+        "producer_index": 1,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1309 records sent, 255.5 records/sec (2.50 MB/sec), 11567.2 ms avg latency, 13398.0 ms max latency.",
+        "records_sent": 1309,
+        "throughput_records_per_sec": 255.5,
+        "throughput_mb_per_sec": 2.5,
+        "avg_latency_ms": 11567.2,
+        "max_latency_ms": 13398.0,
+        "producer_index": 1,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1792 records sent, 355.1 records/sec (3.47 MB/sec), 11300.0 ms avg latency, 13987.0 ms max latency.",
+        "records_sent": 1792,
+        "throughput_records_per_sec": 355.1,
+        "throughput_mb_per_sec": 3.47,
+        "avg_latency_ms": 11300.0,
+        "max_latency_ms": 13987.0,
+        "producer_index": 1,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2032 records sent, 402.0 records/sec (3.93 MB/sec), 8236.5 ms avg latency, 9819.0 ms max latency.",
+        "records_sent": 2032,
+        "throughput_records_per_sec": 402.0,
+        "throughput_mb_per_sec": 3.93,
+        "avg_latency_ms": 8236.5,
+        "max_latency_ms": 9819.0,
+        "producer_index": 1,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.1 records/sec (0.00 MB/sec), 17445.0 ms avg latency, 17445.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.1,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 17445.0,
+        "max_latency_ms": 17445.0,
+        "producer_index": 10,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "236 records sent, 40.6 records/sec (0.40 MB/sec), 5011.4 ms avg latency, 7787.0 ms max latency.",
+        "records_sent": 236,
+        "throughput_records_per_sec": 40.6,
+        "throughput_mb_per_sec": 0.4,
+        "avg_latency_ms": 5011.4,
+        "max_latency_ms": 7787.0,
+        "producer_index": 10,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "867 records sent, 167.6 records/sec (1.64 MB/sec), 8364.0 ms avg latency, 11313.0 ms max latency.",
+        "records_sent": 867,
+        "throughput_records_per_sec": 167.6,
+        "throughput_mb_per_sec": 1.64,
+        "avg_latency_ms": 8364.0,
+        "max_latency_ms": 11313.0,
+        "producer_index": 10,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2227 records sent, 441.0 records/sec (4.31 MB/sec), 9784.2 ms avg latency, 13097.0 ms max latency.",
+        "records_sent": 2227,
+        "throughput_records_per_sec": 441.0,
+        "throughput_mb_per_sec": 4.31,
+        "avg_latency_ms": 9784.2,
+        "max_latency_ms": 13097.0,
+        "producer_index": 10,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1936 records sent, 372.8 records/sec (3.64 MB/sec), 7025.9 ms avg latency, 10123.0 ms max latency.",
+        "records_sent": 1936,
+        "throughput_records_per_sec": 372.8,
+        "throughput_mb_per_sec": 3.64,
+        "avg_latency_ms": 7025.9,
+        "max_latency_ms": 10123.0,
+        "producer_index": 10,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1940 records sent, 371.8 records/sec (3.63 MB/sec), 7890.7 ms avg latency, 9139.0 ms max latency.",
+        "records_sent": 1940,
+        "throughput_records_per_sec": 371.8,
+        "throughput_mb_per_sec": 3.63,
+        "avg_latency_ms": 7890.7,
+        "max_latency_ms": 9139.0,
+        "producer_index": 10,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.1 records/sec (0.00 MB/sec), 2323.0 ms avg latency, 2323.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.1,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 2323.0,
+        "max_latency_ms": 2323.0,
+        "producer_index": 11,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "305 records sent, 56.4 records/sec (0.55 MB/sec), 5818.7 ms avg latency, 16992.0 ms max latency.",
+        "records_sent": 305,
+        "throughput_records_per_sec": 56.4,
+        "throughput_mb_per_sec": 0.55,
+        "avg_latency_ms": 5818.7,
+        "max_latency_ms": 16992.0,
+        "producer_index": 11,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "886 records sent, 166.9 records/sec (1.63 MB/sec), 9216.2 ms avg latency, 11937.0 ms max latency.",
+        "records_sent": 886,
+        "throughput_records_per_sec": 166.9,
+        "throughput_mb_per_sec": 1.63,
+        "avg_latency_ms": 9216.2,
+        "max_latency_ms": 11937.0,
+        "producer_index": 11,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2548 records sent, 509.6 records/sec (4.98 MB/sec), 9448.1 ms avg latency, 11608.0 ms max latency.",
+        "records_sent": 2548,
+        "throughput_records_per_sec": 509.6,
+        "throughput_mb_per_sec": 4.98,
+        "avg_latency_ms": 9448.1,
+        "max_latency_ms": 11608.0,
+        "producer_index": 11,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1955 records sent, 378.8 records/sec (3.70 MB/sec), 6292.7 ms avg latency, 7935.0 ms max latency.",
+        "records_sent": 1955,
+        "throughput_records_per_sec": 378.8,
+        "throughput_mb_per_sec": 3.7,
+        "avg_latency_ms": 6292.7,
+        "max_latency_ms": 7935.0,
+        "producer_index": 11,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1924 records sent, 380.0 records/sec (3.71 MB/sec), 7594.2 ms avg latency, 8514.0 ms max latency.",
+        "records_sent": 1924,
+        "throughput_records_per_sec": 380.0,
+        "throughput_mb_per_sec": 3.71,
+        "avg_latency_ms": 7594.2,
+        "max_latency_ms": 8514.0,
+        "producer_index": 11,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.0 records/sec (0.00 MB/sec), 19964.0 ms avg latency, 19964.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.0,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 19964.0,
+        "max_latency_ms": 19964.0,
+        "producer_index": 12,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "354 records sent, 64.6 records/sec (0.63 MB/sec), 6667.5 ms avg latency, 8703.0 ms max latency.",
+        "records_sent": 354,
+        "throughput_records_per_sec": 64.6,
+        "throughput_mb_per_sec": 0.63,
+        "avg_latency_ms": 6667.5,
+        "max_latency_ms": 8703.0,
+        "producer_index": 12,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "995 records sent, 193.4 records/sec (1.89 MB/sec), 7409.4 ms avg latency, 9485.0 ms max latency.",
+        "records_sent": 995,
+        "throughput_records_per_sec": 193.4,
+        "throughput_mb_per_sec": 1.89,
+        "avg_latency_ms": 7409.4,
+        "max_latency_ms": 9485.0,
+        "producer_index": 12,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1430 records sent, 279.4 records/sec (2.73 MB/sec), 9644.0 ms avg latency, 10905.0 ms max latency.",
+        "records_sent": 1430,
+        "throughput_records_per_sec": 279.4,
+        "throughput_mb_per_sec": 2.73,
+        "avg_latency_ms": 9644.0,
+        "max_latency_ms": 10905.0,
+        "producer_index": 12,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2006 records sent, 400.1 records/sec (3.91 MB/sec), 10202.1 ms avg latency, 12841.0 ms max latency.",
+        "records_sent": 2006,
+        "throughput_records_per_sec": 400.1,
+        "throughput_mb_per_sec": 3.91,
+        "avg_latency_ms": 10202.1,
+        "max_latency_ms": 12841.0,
+        "producer_index": 12,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.1 records/sec (0.00 MB/sec), 3468.0 ms avg latency, 3468.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.1,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 3468.0,
+        "max_latency_ms": 3468.0,
+        "producer_index": 2,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "288 records sent, 54.4 records/sec (0.53 MB/sec), 4382.4 ms avg latency, 17823.0 ms max latency.",
+        "records_sent": 288,
+        "throughput_records_per_sec": 54.4,
+        "throughput_mb_per_sec": 0.53,
+        "avg_latency_ms": 4382.4,
+        "max_latency_ms": 17823.0,
+        "producer_index": 2,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "901 records sent, 171.2 records/sec (1.67 MB/sec), 6753.6 ms avg latency, 9301.0 ms max latency.",
+        "records_sent": 901,
+        "throughput_records_per_sec": 171.2,
+        "throughput_mb_per_sec": 1.67,
+        "avg_latency_ms": 6753.6,
+        "max_latency_ms": 9301.0,
+        "producer_index": 2,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1370 records sent, 270.9 records/sec (2.65 MB/sec), 9289.3 ms avg latency, 10925.0 ms max latency.",
+        "records_sent": 1370,
+        "throughput_records_per_sec": 270.9,
+        "throughput_mb_per_sec": 2.65,
+        "avg_latency_ms": 9289.3,
+        "max_latency_ms": 10925.0,
+        "producer_index": 2,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1723 records sent, 338.0 records/sec (3.30 MB/sec), 10386.7 ms avg latency, 12370.0 ms max latency.",
+        "records_sent": 1723,
+        "throughput_records_per_sec": 338.0,
+        "throughput_mb_per_sec": 3.3,
+        "avg_latency_ms": 10386.7,
+        "max_latency_ms": 12370.0,
+        "producer_index": 2,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1865 records sent, 369.5 records/sec (3.61 MB/sec), 8575.3 ms avg latency, 9977.0 ms max latency.",
+        "records_sent": 1865,
+        "throughput_records_per_sec": 369.5,
+        "throughput_mb_per_sec": 3.61,
+        "avg_latency_ms": 8575.3,
+        "max_latency_ms": 9977.0,
+        "producer_index": 2,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.1 records/sec (0.00 MB/sec), 3319.0 ms avg latency, 3319.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.1,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 3319.0,
+        "max_latency_ms": 3319.0,
+        "producer_index": 3,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "305 records sent, 57.5 records/sec (0.56 MB/sec), 5675.1 ms avg latency, 18048.0 ms max latency.",
+        "records_sent": 305,
+        "throughput_records_per_sec": 57.5,
+        "throughput_mb_per_sec": 0.56,
+        "avg_latency_ms": 5675.1,
+        "max_latency_ms": 18048.0,
+        "producer_index": 3,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "814 records sent, 158.4 records/sec (1.55 MB/sec), 8016.8 ms avg latency, 10998.0 ms max latency.",
+        "records_sent": 814,
+        "throughput_records_per_sec": 158.4,
+        "throughput_mb_per_sec": 1.55,
+        "avg_latency_ms": 8016.8,
+        "max_latency_ms": 10998.0,
+        "producer_index": 3,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1412 records sent, 279.3 records/sec (2.73 MB/sec), 10431.5 ms avg latency, 12130.0 ms max latency.",
+        "records_sent": 1412,
+        "throughput_records_per_sec": 279.3,
+        "throughput_mb_per_sec": 2.73,
+        "avg_latency_ms": 10431.5,
+        "max_latency_ms": 12130.0,
+        "producer_index": 3,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1779 records sent, 347.0 records/sec (3.39 MB/sec), 10480.7 ms avg latency, 13091.0 ms max latency.",
+        "records_sent": 1779,
+        "throughput_records_per_sec": 347.0,
+        "throughput_mb_per_sec": 3.39,
+        "avg_latency_ms": 10480.7,
+        "max_latency_ms": 13091.0,
+        "producer_index": 3,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1990 records sent, 396.5 records/sec (3.87 MB/sec), 8368.4 ms avg latency, 9624.0 ms max latency.",
+        "records_sent": 1990,
+        "throughput_records_per_sec": 396.5,
+        "throughput_mb_per_sec": 3.87,
+        "avg_latency_ms": 8368.4,
+        "max_latency_ms": 9624.0,
+        "producer_index": 3,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.0 records/sec (0.00 MB/sec), 4693.0 ms avg latency, 4693.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.0,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 4693.0,
+        "max_latency_ms": 4693.0,
+        "producer_index": 4,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "381 records sent, 73.8 records/sec (0.72 MB/sec), 6806.0 ms avg latency, 20337.0 ms max latency.",
+        "records_sent": 381,
+        "throughput_records_per_sec": 73.8,
+        "throughput_mb_per_sec": 0.72,
+        "avg_latency_ms": 6806.0,
+        "max_latency_ms": 20337.0,
+        "producer_index": 4,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "940 records sent, 186.6 records/sec (1.82 MB/sec), 8972.3 ms avg latency, 11180.0 ms max latency.",
+        "records_sent": 940,
+        "throughput_records_per_sec": 186.6,
+        "throughput_mb_per_sec": 1.82,
+        "avg_latency_ms": 8972.3,
+        "max_latency_ms": 11180.0,
+        "producer_index": 4,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1253 records sent, 242.2 records/sec (2.37 MB/sec), 11331.0 ms avg latency, 12504.0 ms max latency.",
+        "records_sent": 1253,
+        "throughput_records_per_sec": 242.2,
+        "throughput_mb_per_sec": 2.37,
+        "avg_latency_ms": 11331.0,
+        "max_latency_ms": 12504.0,
+        "producer_index": 4,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2489 records sent, 496.1 records/sec (4.84 MB/sec), 10421.8 ms avg latency, 14422.0 ms max latency.",
+        "records_sent": 2489,
+        "throughput_records_per_sec": 496.1,
+        "throughput_mb_per_sec": 4.84,
+        "avg_latency_ms": 10421.8,
+        "max_latency_ms": 14422.0,
+        "producer_index": 4,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.1 records/sec (0.00 MB/sec), 6436.0 ms avg latency, 6436.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.1,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 6436.0,
+        "max_latency_ms": 6436.0,
+        "producer_index": 5,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "429 records sent, 78.3 records/sec (0.76 MB/sec), 7596.3 ms avg latency, 20567.0 ms max latency.",
+        "records_sent": 429,
+        "throughput_records_per_sec": 78.3,
+        "throughput_mb_per_sec": 0.76,
+        "avg_latency_ms": 7596.3,
+        "max_latency_ms": 20567.0,
+        "producer_index": 5,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1007 records sent, 194.2 records/sec (1.90 MB/sec), 9730.8 ms avg latency, 11683.0 ms max latency.",
+        "records_sent": 1007,
+        "throughput_records_per_sec": 194.2,
+        "throughput_mb_per_sec": 1.9,
+        "avg_latency_ms": 9730.8,
+        "max_latency_ms": 11683.0,
+        "producer_index": 5,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1500 records sent, 289.7 records/sec (2.83 MB/sec), 11995.4 ms avg latency, 15001.0 ms max latency.",
+        "records_sent": 1500,
+        "throughput_records_per_sec": 289.7,
+        "throughput_mb_per_sec": 2.83,
+        "avg_latency_ms": 11995.4,
+        "max_latency_ms": 15001.0,
+        "producer_index": 5,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1699 records sent, 329.5 records/sec (3.22 MB/sec), 10702.2 ms avg latency, 13718.0 ms max latency.",
+        "records_sent": 1699,
+        "throughput_records_per_sec": 329.5,
+        "throughput_mb_per_sec": 3.22,
+        "avg_latency_ms": 10702.2,
+        "max_latency_ms": 13718.0,
+        "producer_index": 5,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2210 records sent, 436.0 records/sec (4.26 MB/sec), 8210.7 ms avg latency, 9545.0 ms max latency.",
+        "records_sent": 2210,
+        "throughput_records_per_sec": 436.0,
+        "throughput_mb_per_sec": 4.26,
+        "avg_latency_ms": 8210.7,
+        "max_latency_ms": 9545.0,
+        "producer_index": 5,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.0 records/sec (0.00 MB/sec), 3040.0 ms avg latency, 3040.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.0,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 3040.0,
+        "max_latency_ms": 3040.0,
+        "producer_index": 6,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "351 records sent, 68.7 records/sec (0.67 MB/sec), 6366.4 ms avg latency, 20397.0 ms max latency.",
+        "records_sent": 351,
+        "throughput_records_per_sec": 68.7,
+        "throughput_mb_per_sec": 0.67,
+        "avg_latency_ms": 6366.4,
+        "max_latency_ms": 20397.0,
+        "producer_index": 6,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "948 records sent, 179.9 records/sec (1.76 MB/sec), 7916.6 ms avg latency, 9338.0 ms max latency.",
+        "records_sent": 948,
+        "throughput_records_per_sec": 179.9,
+        "throughput_mb_per_sec": 1.76,
+        "avg_latency_ms": 7916.6,
+        "max_latency_ms": 9338.0,
+        "producer_index": 6,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1334 records sent, 258.4 records/sec (2.52 MB/sec), 10321.9 ms avg latency, 11710.0 ms max latency.",
+        "records_sent": 1334,
+        "throughput_records_per_sec": 258.4,
+        "throughput_mb_per_sec": 2.52,
+        "avg_latency_ms": 10321.9,
+        "max_latency_ms": 11710.0,
+        "producer_index": 6,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1659 records sent, 325.8 records/sec (3.18 MB/sec), 11309.7 ms avg latency, 12833.0 ms max latency.",
+        "records_sent": 1659,
+        "throughput_records_per_sec": 325.8,
+        "throughput_mb_per_sec": 3.18,
+        "avg_latency_ms": 11309.7,
+        "max_latency_ms": 12833.0,
+        "producer_index": 6,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2100 records sent, 411.8 records/sec (4.02 MB/sec), 8593.5 ms avg latency, 10609.0 ms max latency.",
+        "records_sent": 2100,
+        "throughput_records_per_sec": 411.8,
+        "throughput_mb_per_sec": 4.02,
+        "avg_latency_ms": 8593.5,
+        "max_latency_ms": 10609.0,
+        "producer_index": 6,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.0 records/sec (0.00 MB/sec), 6359.0 ms avg latency, 6359.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.0,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 6359.0,
+        "max_latency_ms": 6359.0,
+        "producer_index": 7,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "456 records sent, 86.6 records/sec (0.85 MB/sec), 8469.7 ms avg latency, 21119.0 ms max latency.",
+        "records_sent": 456,
+        "throughput_records_per_sec": 86.6,
+        "throughput_mb_per_sec": 0.85,
+        "avg_latency_ms": 8469.7,
+        "max_latency_ms": 21119.0,
+        "producer_index": 7,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1049 records sent, 199.5 records/sec (1.95 MB/sec), 10465.2 ms avg latency, 12394.0 ms max latency.",
+        "records_sent": 1049,
+        "throughput_records_per_sec": 199.5,
+        "throughput_mb_per_sec": 1.95,
+        "avg_latency_ms": 10465.2,
+        "max_latency_ms": 12394.0,
+        "producer_index": 7,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1663 records sent, 320.0 records/sec (3.12 MB/sec), 12139.5 ms avg latency, 13696.0 ms max latency.",
+        "records_sent": 1663,
+        "throughput_records_per_sec": 320.0,
+        "throughput_mb_per_sec": 3.12,
+        "avg_latency_ms": 12139.5,
+        "max_latency_ms": 13696.0,
+        "producer_index": 7,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1682 records sent, 335.0 records/sec (3.27 MB/sec), 9982.0 ms avg latency, 14361.0 ms max latency.",
+        "records_sent": 1682,
+        "throughput_records_per_sec": 335.0,
+        "throughput_mb_per_sec": 3.27,
+        "avg_latency_ms": 9982.0,
+        "max_latency_ms": 14361.0,
+        "producer_index": 7,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2118 records sent, 415.0 records/sec (4.05 MB/sec), 8272.6 ms avg latency, 9320.0 ms max latency.",
+        "records_sent": 2118,
+        "throughput_records_per_sec": 415.0,
+        "throughput_mb_per_sec": 4.05,
+        "avg_latency_ms": 8272.6,
+        "max_latency_ms": 9320.0,
+        "producer_index": 7,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.0 records/sec (0.00 MB/sec), 19922.0 ms avg latency, 19922.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.0,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 19922.0,
+        "max_latency_ms": 19922.0,
+        "producer_index": 8,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "288 records sent, 55.8 records/sec (0.55 MB/sec), 7184.3 ms avg latency, 9282.0 ms max latency.",
+        "records_sent": 288,
+        "throughput_records_per_sec": 55.8,
+        "throughput_mb_per_sec": 0.55,
+        "avg_latency_ms": 7184.3,
+        "max_latency_ms": 9282.0,
+        "producer_index": 8,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "957 records sent, 189.1 records/sec (1.85 MB/sec), 9638.1 ms avg latency, 11923.0 ms max latency.",
+        "records_sent": 957,
+        "throughput_records_per_sec": 189.1,
+        "throughput_mb_per_sec": 1.85,
+        "avg_latency_ms": 9638.1,
+        "max_latency_ms": 11923.0,
+        "producer_index": 8,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1562 records sent, 310.3 records/sec (3.03 MB/sec), 11797.2 ms avg latency, 14193.0 ms max latency.",
+        "records_sent": 1562,
+        "throughput_records_per_sec": 310.3,
+        "throughput_mb_per_sec": 3.03,
+        "avg_latency_ms": 11797.2,
+        "max_latency_ms": 14193.0,
+        "producer_index": 8,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1717 records sent, 336.9 records/sec (3.29 MB/sec), 10217.1 ms avg latency, 12754.0 ms max latency.",
+        "records_sent": 1717,
+        "throughput_records_per_sec": 336.9,
+        "throughput_mb_per_sec": 3.29,
+        "avg_latency_ms": 10217.1,
+        "max_latency_ms": 12754.0,
+        "producer_index": 8,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "2347 records sent, 469.1 records/sec (4.58 MB/sec), 8075.0 ms avg latency, 9323.0 ms max latency.",
+        "records_sent": 2347,
+        "throughput_records_per_sec": 469.1,
+        "throughput_mb_per_sec": 4.58,
+        "avg_latency_ms": 8075.0,
+        "max_latency_ms": 9323.0,
+        "producer_index": 8,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1 records sent, 0.1 records/sec (0.00 MB/sec), 19714.0 ms avg latency, 19714.0 ms max latency.",
+        "records_sent": 1,
+        "throughput_records_per_sec": 0.1,
+        "throughput_mb_per_sec": 0.0,
+        "avg_latency_ms": 19714.0,
+        "max_latency_ms": 19714.0,
+        "producer_index": 9,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "277 records sent, 55.3 records/sec (0.54 MB/sec), 5398.5 ms avg latency, 8411.0 ms max latency.",
+        "records_sent": 277,
+        "throughput_records_per_sec": 55.3,
+        "throughput_mb_per_sec": 0.54,
+        "avg_latency_ms": 5398.5,
+        "max_latency_ms": 8411.0,
+        "producer_index": 9,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "809 records sent, 160.4 records/sec (1.57 MB/sec), 7270.7 ms avg latency, 9697.0 ms max latency.",
+        "records_sent": 809,
+        "throughput_records_per_sec": 160.4,
+        "throughput_mb_per_sec": 1.57,
+        "avg_latency_ms": 7270.7,
+        "max_latency_ms": 9697.0,
+        "producer_index": 9,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1163 records sent, 229.5 records/sec (2.24 MB/sec), 9811.7 ms avg latency, 11349.0 ms max latency.",
+        "records_sent": 1163,
+        "throughput_records_per_sec": 229.5,
+        "throughput_mb_per_sec": 2.24,
+        "avg_latency_ms": 9811.7,
+        "max_latency_ms": 11349.0,
+        "producer_index": 9,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1663 records sent, 328.1 records/sec (3.20 MB/sec), 11432.1 ms avg latency, 13117.0 ms max latency.",
+        "records_sent": 1663,
+        "throughput_records_per_sec": 328.1,
+        "throughput_mb_per_sec": 3.2,
+        "avg_latency_ms": 11432.1,
+        "max_latency_ms": 13117.0,
+        "producer_index": 9,
+        "producer_count": 12
+      },
+      {
+        "summary_line": "1834 records sent, 360.4 records/sec (3.52 MB/sec), 9369.2 ms avg latency, 11862.0 ms max latency.",
+        "records_sent": 1834,
+        "throughput_records_per_sec": 360.4,
+        "throughput_mb_per_sec": 3.52,
+        "avg_latency_ms": 9369.2,
+        "max_latency_ms": 11862.0,
+        "producer_index": 9,
+        "producer_count": 12
+      }
+    ]
+  },
+  "host_telemetry": {
+    "enabled": true,
+    "sample_interval_seconds": null,
+    "host_count": 4,
+    "hosts": [
+      {
+        "role": "benchmark_client",
+        "host_id": "benchmark-client",
+        "sample_count": 75,
+        "started_at": "2026-05-03T08:14:07Z",
+        "ended_at": "2026-05-03T08:15:24Z",
+        "cpu_percent_mean": 92.91146666666667,
+        "cpu_percent_max": 100.0,
+        "memory_used_percent_mean": 21.917066666666663,
+        "memory_used_percent_max": 33.54,
+        "network_rx_bytes_delta": 4843645,
+        "network_tx_bytes_delta": 1039639117,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 59928,
+        "source_file": "benchmark-client.jsonl"
+      },
+      {
+        "role": "broker",
+        "host_id": "broker-1",
+        "sample_count": 79,
+        "started_at": "2026-05-03T08:14:07Z",
+        "ended_at": "2026-05-03T08:15:27Z",
+        "cpu_percent_mean": 10.184177215189878,
+        "cpu_percent_max": 42.79,
+        "memory_used_percent_mean": 23.040253164556944,
+        "memory_used_percent_max": 23.23,
+        "network_rx_bytes_delta": 1040077542,
+        "network_tx_bytes_delta": 696582967,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 1840768,
+        "source_file": "broker-1.jsonl"
+      },
+      {
+        "role": "broker",
+        "host_id": "broker-2",
+        "sample_count": 80,
+        "started_at": "2026-05-03T08:14:09Z",
+        "ended_at": "2026-05-03T08:15:29Z",
+        "cpu_percent_mean": 9.132125,
+        "cpu_percent_max": 44.17,
+        "memory_used_percent_mean": 23.225375,
+        "memory_used_percent_max": 23.51,
+        "network_rx_bytes_delta": 1040074654,
+        "network_tx_bytes_delta": 704888182,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 2007960,
+        "source_file": "broker-2.jsonl"
+      },
+      {
+        "role": "broker",
+        "host_id": "broker-3",
+        "sample_count": 82,
+        "started_at": "2026-05-03T08:14:10Z",
+        "ended_at": "2026-05-03T08:15:32Z",
+        "cpu_percent_mean": 7.536463414634148,
+        "cpu_percent_max": 36.36,
+        "memory_used_percent_mean": 24.11085365853658,
+        "memory_used_percent_max": 24.32,
+        "network_rx_bytes_delta": 1039992642,
+        "network_tx_bytes_delta": 692122602,
+        "disk_read_sectors_delta": 0,
+        "disk_write_sectors_delta": 1838576,
+        "source_file": "broker-3.jsonl"
+      }
+    ],
+    "broker_cpu_percent_mean": 8.950921876608009,
+    "broker_cpu_percent_max_mean": 41.10666666666667,
+    "benchmark_client_cpu_percent_mean": 92.91146666666667,
+    "broker_memory_used_percent_mean": 23.45882727436451,
+    "benchmark_client_memory_used_percent_mean": 21.917066666666663,
+    "broker_network_rx_bytes_delta_mean": 1040048279.3333334,
+    "broker_network_tx_bytes_delta_mean": 697864583.6666666,
+    "broker_network_rx_bytes_delta_total": 3120144838,
+    "broker_network_tx_bytes_delta_total": 2093593751,
+    "benchmark_client_network_rx_bytes_delta": 4843645,
+    "benchmark_client_network_tx_bytes_delta": 1039639117,
+    "broker_disk_read_sectors_delta_mean": 0.0,
+    "broker_disk_write_sectors_delta_mean": 1895768.0,
+    "broker_disk_read_sectors_delta_total": 0,
+    "broker_disk_write_sectors_delta_total": 5687304,
+    "benchmark_client_disk_read_sectors_delta": 0,
+    "benchmark_client_disk_write_sectors_delta": 59928,
+    "source_directory": "host-telemetry"
+  },
+  "files": {
+    "raw_output": "/var/lib/kafka-client/results/security-overhead-final-factorial-mtls-b3-rf3-isr3-msg10240-tps10000-batch131072-acksall-prod12-complz4-trial2/producer-perf.log",
+    "metadata": "metadata.json"
+  },
+  "raw_summary_lines": [
+    "8334 records sent, 172.868699 records/sec (1.69 MB/sec), 9017.59 ms avg latency, 19970.00 ms max latency, 8740 ms 50th, 12530 ms 95th, 13217 ms 99th, 13986 ms 99.9th.",
+    "8333 records sent, 179.819167 records/sec (1.76 MB/sec), 8119.28 ms avg latency, 17445.00 ms max latency, 7874 ms 50th, 10292 ms 95th, 11953 ms 99th, 13054 ms 99.9th.",
+    "8333 records sent, 185.751544 records/sec (1.81 MB/sec), 7963.87 ms avg latency, 16992.00 ms max latency, 7749 ms 50th, 10686 ms 95th, 11309 ms 99th, 11906 ms 99.9th.",
+    "8333 records sent, 184.350250 records/sec (1.80 MB/sec), 7369.95 ms avg latency, 19964.00 ms max latency, 7510 ms 50th, 11103 ms 95th, 12184 ms 99th, 12644 ms 99.9th.",
+    "8334 records sent, 176.923893 records/sec (1.73 MB/sec), 8285.27 ms avg latency, 17823.00 ms max latency, 8423 ms 50th, 10817 ms 95th, 11553 ms 99th, 12340 ms 99.9th.",
+    "8334 records sent, 181.655696 records/sec (1.77 MB/sec), 8408.41 ms avg latency, 18048.00 ms max latency, 8544 ms 50th, 11314 ms 95th, 11985 ms 99th, 13059 ms 99.9th.",
+    "8334 records sent, 186.865176 records/sec (1.82 MB/sec), 7685.78 ms avg latency, 20337.00 ms max latency, 7791 ms 50th, 12516 ms 95th, 13563 ms 99th, 14401 ms 99.9th.",
+    "8333 records sent, 174.732648 records/sec (1.71 MB/sec), 9155.58 ms avg latency, 20567.00 ms max latency, 9017 ms 50th, 12718 ms 95th, 14294 ms 99th, 14996 ms 99.9th.",
+    "8333 records sent, 173.117274 records/sec (1.69 MB/sec), 8589.65 ms avg latency, 20397.00 ms max latency, 8578 ms 50th, 12008 ms 95th, 12513 ms 99th, 12830 ms 99.9th.",
+    "8333 records sent, 174.655740 records/sec (1.71 MB/sec), 9357.23 ms avg latency, 21119.00 ms max latency, 9011 ms 50th, 12597 ms 95th, 13422 ms 99th, 14358 ms 99.9th.",
+    "8333 records sent, 177.725169 records/sec (1.74 MB/sec), 8873.14 ms avg latency, 19922.00 ms max latency, 8761 ms 50th, 12314 ms 95th, 13272 ms 99th, 14151 ms 99.9th.",
+    "8333 records sent, 171.503252 records/sec (1.67 MB/sec), 8621.97 ms avg latency, 19714.00 ms max latency, 8748 ms 50th, 11979 ms 95th, 12559 ms 99th, 13116 ms 99.9th."
+  ]
+}
