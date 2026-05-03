@@ -76,34 +76,22 @@ Valid final phases:
 | 5 | `tls` | 3 | 432 |
 | 6 | `plaintext` | 3 | 432 |
 
-The recommended order starts with `mtls` broker-5 because the live cluster is currently in mTLS mode. Do not shrink to 3 brokers until the broker-5 phases that you intend to keep are complete.
+The table lists valid phases, not a required execution order. The actual execution order followed the available cluster state and cost constraints: five-broker phases first, then the three-broker phases. Do not shrink to 3 brokers until the five-broker evidence you intend to keep has been collected.
 
 ## Current State
 
-Completed five-broker producer result sets:
+Producer final-campaign state snapshot, captured on 2026-05-03 after the broker-3 mTLS phase had started:
 
-```text
-results/factorial-final/security-overhead-final-mtls-broker5/
-results/factorial-final/security-overhead-final-tls-broker5/
-```
+| Result set | Completed rows | Status |
+|---|---:|---|
+| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-tls-broker5` | `1296/1296` | Complete, with historical recovered TLS failure attempts |
+| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
+| `security-overhead-final-tls-broker3` | `432/432` | Complete |
+| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
 
-Current five-broker producer status:
-
-- `security-overhead-final-mtls-broker5`: `1296/1296` completed rows, `0` historical failure attempts.
-- `security-overhead-final-tls-broker5`: `1296/1296` completed rows, `2` historical failure attempts.
-- The TLS `failures.jsonl` entries both refer to the same final row, which was later rerun successfully.
-
-This means the five-broker `mtls` and `tls` producer phases are complete.
-
-The current active five-broker plaintext producer phase is:
-
-```text
-results/factorial-final/security-overhead-final-plaintext-broker5/
-```
-
-It is still in progress and should be treated as a live checkpointed phase rather than a finished dataset snapshot. The remaining final producer phases after plaintext broker-5 are the three-broker phases.
-
-During this live plaintext phase, `failures.jsonl` may accumulate historical failed attempts while reruns continue. Do not treat these entries as final unresolved missing rows unless the same run identifiers are still absent from `completed.jsonl` and do not have local `result.json` files once the phase is complete.
+For live phases, `failures.jsonl` may contain historical failed attempts while reruns continue. Do not treat these entries as unresolved missing rows unless the same run identifiers remain absent from `completed.jsonl` and lack local `result.json` files once the phase ends.
 
 The targeted five-broker consumer validation slice is now complete across all three security modes:
 
@@ -247,7 +235,7 @@ telemetry_host_count == active broker count + 1
 
 For a freshly completed phase, `failure_count == 0` is ideal but not strictly required. If `completed.jsonl` reaches the planned row count and every completed run has a local `result.json`, the phase is complete even if `failures.jsonl` contains historical failed attempts that were later recovered by rerun.
 
-For a live in-progress phase such as `security-overhead-final-plaintext-broker5`, use the same authoritative rule for already completed rows, but do not treat the phase as finished until the planned row count is reached.
+For a live in-progress phase such as `security-overhead-final-mtls-broker3`, use the same authoritative rule for already completed rows, but do not treat the phase as finished until the planned row count is reached.
 
 For five-broker phases, `telemetry_host_count` should normally be `6`. For three-broker phases, it should normally be `4`.
 
