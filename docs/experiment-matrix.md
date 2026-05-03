@@ -115,7 +115,7 @@ Breakdown by broker-count phase:
 
 Broker count must reflect the real active cluster. Do not run `broker_count=3` rows on a five-broker cluster and label them as three-broker results.
 
-Recommended phase structure:
+Phase structure:
 
 | Phase | `security_mode` | `broker_count` | Runs |
 |---|---|---:|---:|
@@ -126,7 +126,18 @@ Recommended phase structure:
 | 5 | `tls` | 3 | 432 |
 | 6 | `mtls` | 3 | 432 |
 
-The current executor can generate and execute all rows. Plaintext, TLS, and mTLS deployment/client paths are implemented. Each security mode must still be run only after deploying the matching cluster mode.
+The table defines the six independent phase slices. It is not a required execution order. The current executor can generate and execute all rows. Plaintext, TLS, and mTLS deployment/client paths are implemented. Each security mode must still be run only after deploying the matching cluster mode.
+
+Current producer final-campaign state snapshot, captured on 2026-05-03 after broker-3 mTLS had started:
+
+| Result set | Completed rows | Status |
+|---|---:|---|
+| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-tls-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
+| `security-overhead-final-tls-broker3` | `432/432` | Complete |
+| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
 
 Example plaintext five-broker command:
 
