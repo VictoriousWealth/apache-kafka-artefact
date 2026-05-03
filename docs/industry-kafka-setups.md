@@ -222,9 +222,9 @@ Avoid wording like:
 
 That is not supported by the local sources.
 
-## Implication For Current Results
+## Historical Implication For Early Results
 
-The current completed plaintext sweep only covers:
+The early completed plaintext sweep only covered:
 
 ```text
 security_mode = plaintext
@@ -233,4 +233,4 @@ values = 1024, 10240, 102400
 trials = 3
 ```
 
-That result is useful as a pipeline validation and first baseline, but it is not enough for a high-mark final dissertation evaluation. The next stage should convert the profiles above into config files and run each one under `plaintext`, then repeat the same profiles under `TLS` and `mTLS`.
+That result is useful as pipeline validation and first baseline evidence, but it is not the final security-overhead dataset. The dissertation evidence has since moved to the explicit final factorial campaign in `config/factorials/security-overhead-final.json`, with matched plaintext, TLS, and mTLS producer phases across broker-count, durability, workload, batching, acknowledgement, producer-count, compression, and trial dimensions.
