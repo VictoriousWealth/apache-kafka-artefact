@@ -134,12 +134,12 @@ scripts/orchestration/generate_factorial_plan.sh \
 
 This plan contains 72 consumer runs across plaintext, TLS, and mTLS. It uses `benchmark_type=consumer`, so the same executor calls `/usr/local/bin/run_consumer_perf.sh` and `parse_consumer_perf_results.sh`.
 
-Dry-run the first five rows for the active five-broker cluster:
+Dry-run the first five rows for the selected broker-count phase:
 
 ```bash
 SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
 DRY_RUN=true \
-BROKER_COUNT_FILTER=5 \
+BROKER_COUNT_FILTER=<3-or-5> \
 MAX_RUNS=5 \
 AGGREGATE_RESULTS=false \
 EXPORT_RESULTS=false \
@@ -225,6 +225,30 @@ RESULT_SET_NAME=security-overhead-final-mtls-broker5 \
 CHECKPOINT_FILE=.orchestration/security-overhead-final-mtls-broker5.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
+
+Broker-3 final phases use the same command shape with `BROKER_COUNT_FILTER=3` and the broker-3 result/checkpoint names, for example:
+
+```bash
+SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
+SECURITY_MODE_FILTER=mtls \
+BROKER_COUNT_FILTER=3 \
+LOCAL_RESULTS_DIR=results/factorial-final \
+RESULT_SET_NAME=security-overhead-final-mtls-broker3 \
+CHECKPOINT_FILE=.orchestration/security-overhead-final-mtls-broker3.checkpoint \
+scripts/orchestration/run_factorial_plan.sh
+```
+
+Current final producer campaign state, captured on 2026-05-03 after broker-3 mTLS had started:
+
+| Result set | Completed rows | Status |
+|---|---:|---|
+| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-tls-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
+| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
+| `security-overhead-final-tls-broker3` | `432/432` | Complete |
+| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
 
 Factorial resumability files:
 
@@ -391,13 +415,13 @@ broker_network_rx_overhead_pct.svg
 broker_disk_write_overhead_pct.svg
 ```
 
-Current five-broker plaintext factorial state:
+Historical five-broker plaintext validation state:
 
 ```text
 results/factorial/plaintext-requested-full-broker5/
 ```
 
-This result set currently contains 100 completed runs, 100 checkpoint entries, and no recorded failures.
+This result set contains 100 completed runs, 100 checkpoint entries, and no recorded failures.
 
 Run the three-broker portion after preparing the 3-broker phase:
 
