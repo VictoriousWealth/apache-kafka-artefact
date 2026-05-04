@@ -128,16 +128,18 @@ Phase structure:
 
 The table defines the six independent phase slices. It is not a required execution order. The current executor can generate and execute all rows. Plaintext, TLS, and mTLS deployment/client paths are implemented. Each security mode must still be run only after deploying the matching cluster mode.
 
-Current producer final-campaign state snapshot, captured on 2026-05-03 after broker-3 mTLS had started:
+Final producer campaign completion state used for dissertation reporting:
 
-| Result set | Completed rows | Status |
-|---|---:|---|
-| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-tls-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
-| `security-overhead-final-tls-broker3` | `432/432` | Complete |
-| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
+| Result set | Planned | Started | Completed | Failure attempts | Matched |
+|---|---:|---:|---:|---:|---:|
+| `security-overhead-final-plaintext-broker5` | 1,296 | 1,328 | 1,296 | 29 | 1,296 |
+| `security-overhead-final-tls-broker5` | 1,296 | 1,301 | 1,296 | 2 | 1,296 |
+| `security-overhead-final-mtls-broker5` | 1,296 | 1,299 | 1,296 | 0 | 1,296 |
+| `security-overhead-final-plaintext-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-tls-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-mtls-broker3` | 432 | 432 | 432 | 0 | 432 |
+
+Started and failure-attempt counts are execution-history fields. They can exceed completed rows when interrupted or failed attempts were later rerun successfully. Matched rows are the authoritative comparative analysis set.
 
 Example plaintext five-broker command:
 
@@ -210,4 +212,5 @@ The dissertation should report:
 - matched plaintext/TLS/mTLS throughput overhead
 - matched plaintext/TLS/mTLS latency overhead
 - host telemetry, especially CPU
+- bootstrap confidence intervals, matched-pair summaries, and factor-sensitivity outputs
 - critical discussion of which parameters amplify or reduce security overhead
