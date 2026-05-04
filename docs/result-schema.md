@@ -242,6 +242,48 @@ Percentage change is calculated as:
 
 For throughput, a negative value means lower throughput than plaintext. For latency, CPU, memory, network, and disk, a positive value means higher cost than plaintext.
 
+The final matched dissertation exports also store penalty-oriented fields. In those fields, positive penalty consistently means worse than the matched plaintext row:
+
+- for throughput, positive penalty means lower throughput than plaintext
+- for latency and resource metrics, positive penalty means a higher measured value than plaintext
+
+This distinction matters because raw percentage change and penalty percentage use different signs for throughput.
+
+## Final Result Pack And Statistical Outputs
+
+The canonical final result pack is:
+
+```text
+results/final-processed/comprehensive-result-pack/
+```
+
+The main matched-comparison files are:
+
+| File | Purpose |
+|---|---|
+| `data/producer_matched_wide_comparison.csv` | Wide plaintext/TLS/mTLS producer comparison with matched workload and deployment fields. |
+| `data/consumer_matched_wide_comparison.csv` | Wide plaintext/TLS/mTLS consumer validation comparison. |
+| `data/producer_overhead_long.csv` | Long-form producer overhead data for plotting and factor analysis. |
+| `data/consumer_overhead_long.csv` | Long-form consumer overhead data for plotting and factor analysis. |
+
+The statistical export writes CSV and LaTeX files under:
+
+```text
+results/final-processed/comprehensive-result-pack/statistics/
+```
+
+Key outputs include:
+
+| File group | Purpose |
+|---|---|
+| `producer_bootstrap_ci.*` | Bootstrap confidence intervals for selected producer penalties. |
+| `consumer_bootstrap_ci.*` | Bootstrap confidence intervals for selected consumer penalties. |
+| `producer_paired_effects.*` | Matched-pair direction summaries for producer metrics. |
+| `consumer_paired_effects.*` | Matched-pair direction summaries for consumer metrics. |
+| `factor_sensitivity_top.*` | Largest factor-sensitivity spreads for selected producer and consumer penalties. |
+
+These outputs are derived from the matched comparison files, not directly from unrelated campaign averages.
+
 ## Consumer Result Schema
 
 Targeted consumer benchmark runs are parsed by:
@@ -277,6 +319,6 @@ Use these wording distinctions:
 | Interval p95/p99 | Diagnostic percentile over interval summaries, not true per-record percentile. |
 | CPU overhead | Mean host CPU change relative to matched plaintext row. |
 | Network/disk overhead | Counter deltas during the benchmark window, useful for explaining secondary effects. |
-| Failure count | Number of failed planned runs in the phase ledger. |
+| Failure count | Number of failed execution attempts recorded in the phase ledger; these can include attempts later recovered by successful rerun. |
 
 For final dissertation claims, use matched plaintext/TLS/mTLS rows produced by the current telemetry-enabled pipeline. Older non-telemetry result sets should be described as historical validation only.
