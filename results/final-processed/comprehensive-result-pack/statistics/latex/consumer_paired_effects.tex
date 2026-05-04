@@ -1,0 +1,21 @@
+\begin{table}[H]
+\centering
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{0.10\linewidth}|p{0.22\linewidth}|r|r|r|r|p{0.10\linewidth}|}
+\hline
+\textbf{Mode} & \textbf{Metric} & \textbf{n} & \textbf{Worse rows} & \textbf{Mean penalty} & \textbf{Effect dz} & \textbf{Sign-test p} \\
+\hline
+tls & Throughput records/s & 24 & 100.000\% & 38.704\% & 3.228 & <0.001 \\
+tls & Consumer fetch time ms & 24 & 100.000\% & 79.582\% & 1.504 & <0.001 \\
+tls & Benchmark client CPU \% & 24 & 20.833\% & -4.464\% & -0.288 & 0.008 \\
+tls & Broker CPU mean \% & 24 & 16.667\% & -15.760\% & -0.842 & 0.002 \\
+mtls & Throughput records/s & 24 & 100.000\% & 31.813\% & 1.886 & <0.001 \\
+mtls & Consumer fetch time ms & 24 & 100.000\% & 69.100\% & 1.128 & <0.001 \\
+mtls & Benchmark client CPU \% & 24 & 0.000\% & -25.187\% & -2.129 & <0.001 \\
+mtls & Broker CPU mean \% & 24 & 0.000\% & -46.344\% & -2.118 & <0.001 \\
+\hline
+\end{tabular}
+\caption{Matched-pair effect summary for key consumer penalties}
+\label{tab:consumer-paired-effects}
+\end{table}
