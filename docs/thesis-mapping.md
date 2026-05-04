@@ -24,6 +24,7 @@ The artefact supports this through:
 - repeatable benchmark baselines, sweeps, final factorial plans, and targeted consumer validation plans
 - explicit baseline and sweep definitions
 - traceable outputs and documentation
+- matched comparison files, bootstrap confidence intervals, matched-pair summaries, and factor-sensitivity outputs
 
 ## Rule Mapping
 
@@ -85,10 +86,12 @@ This chapter should explain:
 
 This chapter should present:
 
-- throughput comparisons
-- latency comparisons
-- selected parameter sweeps
-- selected factorial slices where they add explanatory value
+- final matched producer throughput comparisons
+- final matched producer latency comparisons
+- bootstrap confidence intervals and matched-pair direction summaries
+- host telemetry interpretation across CPU, memory, network, and disk
+- factor-sensitivity evidence showing which workload variables amplify overhead
+- targeted consumer-side validation as supporting read-path evidence
 - interpretation of observed trade-offs
 
 ### Chapter 5: Evaluation, Conclusions, and Further Work
@@ -98,6 +101,7 @@ This chapter should evaluate:
 - whether the artefact answered the research question
 - limitations of the current deployment and measurements
 - future improvements such as richer metrics, larger clusters, or additional security controls
+- the distinction between selected Zero Trust-aligned transport controls and a complete Zero Trust Architecture
 
 ## Implementation Priority Mapping
 
