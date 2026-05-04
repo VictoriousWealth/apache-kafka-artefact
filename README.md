@@ -2,6 +2,12 @@
 
 This repository contains the dissertation artefact for measuring Apache Kafka performance under controlled security and workload configurations. The current implemented path provisions an AWS EC2 Kafka cluster, deploys plaintext, TLS, or mTLS Kafka modes, runs parameter sweeps and factorial benchmark plans, parses raw Kafka benchmark output into structured metrics, and exports dissertation-ready tables and plots.
 
+Public repository:
+
+```text
+https://github.com/VictoriousWealth/apache-kafka-artefact
+```
+
 The long-term artefact goal is:
 
 > A configurable Kafka benchmarking framework that supports controlled parameter sweeps and selected factorial experiments over security and deployment variables, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
@@ -27,6 +33,7 @@ Implemented:
 - Raw result parsing into `result.json`.
 - Sweep-level aggregation into `summary.json` and `summary.csv`.
 - Dissertation export layer producing CSV, LaTeX, and SVG plots.
+- Comprehensive final result pack generation for dissertation tables, figures, matched comparison data, and statistical summaries.
 
 Not implemented yet:
 
@@ -43,7 +50,7 @@ The artefact supports that question by creating repeatable Kafka deployments and
 
 ## System Overview
 
-The system has five main layers:
+The system has six main layers:
 
 - `infrastructure/terraform/`: provisions the AWS VPC, subnet, security groups, Kafka broker EC2 instances, and benchmark client EC2 instance.
 - `deploy/kafka/`: contains Kafka installation scripts, broker configuration templates, client configuration, and the producer benchmark runner.
@@ -51,6 +58,7 @@ The system has five main layers:
 - `config/sweeps/`: defines parameter ranges to test, for example message size or target throughput.
 - `config/factorials/`: defines larger factorial experiment spaces.
 - `scripts/orchestration/`: connects Terraform outputs, remote bootstrap, benchmark execution, parsing, aggregation, and export.
+- `scripts/analysis/`: generates matched security comparisons, comprehensive final result packs, bootstrap confidence intervals, matched-pair summaries, and factor-sensitivity outputs.
 
 Supported AWS topology:
 
@@ -67,7 +75,7 @@ AWS VPC
         +-- benchmark-client
 ```
 
-The live final-campaign environment is currently in the three-broker phase, using `kafka-broker-1` to `kafka-broker-3` plus the benchmark client. The five-broker topology is retained in Terraform and historical final-campaign evidence.
+The final dissertation evidence combines completed five-broker and three-broker phases. The Terraform topology supports both broker-count phases, but the final result pack should be treated as the authoritative evidence rather than the state of any live AWS deployment.
 
 The scripts use public IPs for SSH access, but Kafka broker traffic uses private VPC IPs. This is important because Kafka quorum, advertised listeners, benchmark bootstrap servers, and readiness checks all run over the private addresses.
 
@@ -127,7 +135,7 @@ SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_mtls_cluster.sh
 ```
 
-The current live AWS cluster was last deployed in mTLS mode for the broker-3 final phase, so run plaintext or TLS rows only after redeploying the matching cluster mode.
+Run plaintext, TLS, or mTLS rows only after deploying the matching cluster mode. Do not infer the correct mode from historical state; redeploy or verify the active listener before running new rows.
 
 ## Parameter Sweep Configuration
 
@@ -239,6 +247,31 @@ For canonical final campaign result names, comparison export can be run with:
 ```bash
 scripts/analysis/export_final_phase_comparison.sh --broker-count 5
 scripts/analysis/export_final_phase_comparison.sh --broker-count 3
+```
+
+The canonical final dissertation result pack is:
+
+```text
+results/final-processed/comprehensive-result-pack/
+```
+
+It contains matched producer and consumer comparison data, dissertation-ready tables and figures, and statistical outputs. Key files include:
+
+- `data/producer_matched_wide_comparison.csv`
+- `data/consumer_matched_wide_comparison.csv`
+- `data/producer_overhead_long.csv`
+- `data/consumer_overhead_long.csv`
+- `statistics/csv/producer_bootstrap_ci.csv`
+- `statistics/csv/consumer_bootstrap_ci.csv`
+- `statistics/csv/producer_paired_effects.csv`
+- `statistics/csv/consumer_paired_effects.csv`
+- `statistics/csv/factor_sensitivity_top.csv`
+- `statistics/latex/*.tex`
+
+The statistical export can be regenerated with:
+
+```bash
+python3 scripts/analysis/export_statistical_analysis.py
 ```
 
 The latest completed full one-factor plaintext sweep result set is historical validation data:
@@ -375,18 +408,18 @@ Smoke result:
 | Broker mean CPU % | 12.22 |
 | Broker max-CPU mean % | 47.85 |
 
-## Current Final Campaign State
+## Final Campaign State
 
-Producer final-campaign state snapshot, captured on 2026-05-03 after the broker-3 mTLS phase had started:
+Producer final-campaign completion state used for the dissertation:
 
-| Result set | Completed rows | Status |
-|---|---:|---|
-| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-tls-broker5` | `1296/1296` | Complete, with historical recovered TLS failure attempts |
-| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
-| `security-overhead-final-tls-broker3` | `432/432` | Complete |
-| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
+| Result set | Planned | Started | Completed | Failure attempts | Matched |
+|---|---:|---:|---:|---:|---:|
+| `security-overhead-final-plaintext-broker5` | 1,296 | 1,328 | 1,296 | 29 | 1,296 |
+| `security-overhead-final-tls-broker5` | 1,296 | 1,301 | 1,296 | 2 | 1,296 |
+| `security-overhead-final-mtls-broker5` | 1,296 | 1,299 | 1,296 | 0 | 1,296 |
+| `security-overhead-final-plaintext-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-tls-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-mtls-broker3` | 432 | 432 | 432 | 0 | 432 |
 
 Use `completed.jsonl` plus local per-run `result.json` presence as the authoritative completion record. Treat `failures.jsonl` as execution-history evidence rather than as unresolved missing rows when the same run identifiers were later rerun successfully.
 
@@ -541,7 +574,7 @@ Detailed supporting documentation:
 - `docs/final-campaign-operating-notes.md`: phase order, batching, checkpoint, cost, and safety guidance for the final campaign.
 - `docs/industry-kafka-setups.md`: source-derived industry Kafka setup evidence and practical benchmark profiles.
 - `docs/sweep-framework.md`: parameter sweep design.
-- `docs/export-layer.md`: tables and plot export process.
+- `docs/export-layer.md`: sweep, matched-comparison, comprehensive-pack, and statistical export process.
 - `docs/script-index.md`: complete index of repository scripts and their responsibilities.
 - `docs/result-schema.md`: result files, metric definitions, telemetry fields, and comparison schema.
 - `docs/reproducibility.md`: rerun and environment guidance.
@@ -551,10 +584,6 @@ Detailed supporting documentation:
 - `scripts/orchestration/README.md`: orchestration script responsibilities.
 - `infrastructure/terraform/README.md`: Terraform infrastructure design.
 
-## Next Development Steps
+## Final Submission State
 
-1. Let the active broker-3 mTLS producer phase finish.
-2. Aggregate and export broker-3 matched plaintext/TLS/mTLS comparisons.
-3. Regenerate broker-5 and broker-3 comparison artefacts for dissertation tables and plots.
-4. Update dissertation Chapter 4 with the completed broker-count comparison.
-5. Add certificate rotation measurement only if time remains.
+The artefact is in final-analysis state for the dissertation. Future work should be made from a tagged commit or recorded commit hash so the submitted dissertation can be traced to the exact repository version. Remaining engineering extensions, such as certificate rotation or a full consumer factorial campaign, should be treated as future work rather than part of the submitted evidence.
