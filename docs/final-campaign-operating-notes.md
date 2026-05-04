@@ -78,20 +78,20 @@ Valid final phases:
 
 The table lists valid phases, not a required execution order. The actual execution order followed the available cluster state and cost constraints: five-broker phases first, then the three-broker phases. Do not shrink to 3 brokers until the five-broker evidence you intend to keep has been collected.
 
-## Current State
+## Final State
 
-Producer final-campaign state snapshot, captured on 2026-05-03 after the broker-3 mTLS phase had started:
+Producer final-campaign completion state used for dissertation reporting:
 
-| Result set | Completed rows | Status |
-|---|---:|---|
-| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-tls-broker5` | `1296/1296` | Complete, with historical recovered TLS failure attempts |
-| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
-| `security-overhead-final-tls-broker3` | `432/432` | Complete |
-| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
+| Result set | Planned | Started | Completed | Failure attempts | Matched |
+|---|---:|---:|---:|---:|---:|
+| `security-overhead-final-plaintext-broker5` | 1,296 | 1,328 | 1,296 | 29 | 1,296 |
+| `security-overhead-final-tls-broker5` | 1,296 | 1,301 | 1,296 | 2 | 1,296 |
+| `security-overhead-final-mtls-broker5` | 1,296 | 1,299 | 1,296 | 0 | 1,296 |
+| `security-overhead-final-plaintext-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-tls-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-mtls-broker3` | 432 | 432 | 432 | 0 | 432 |
 
-For live phases, `failures.jsonl` may contain historical failed attempts while reruns continue. Do not treat these entries as unresolved missing rows unless the same run identifiers remain absent from `completed.jsonl` and lack local `result.json` files once the phase ends.
+The failure-attempt counts are historical execution ledger entries. They should not be read as unresolved missing rows when the final completed and matched counts reach the planned row count.
 
 The targeted five-broker consumer validation slice is now complete across all three security modes:
 
@@ -235,7 +235,7 @@ telemetry_host_count == active broker count + 1
 
 For a freshly completed phase, `failure_count == 0` is ideal but not strictly required. If `completed.jsonl` reaches the planned row count and every completed run has a local `result.json`, the phase is complete even if `failures.jsonl` contains historical failed attempts that were later recovered by rerun.
 
-For a live in-progress phase such as `security-overhead-final-mtls-broker3`, use the same authoritative rule for already completed rows, but do not treat the phase as finished until the planned row count is reached.
+For any future rerun, use the same authoritative rule for already completed rows, but do not treat a phase as finished until the planned row count is reached.
 
 For five-broker phases, `telemetry_host_count` should normally be `6`. For three-broker phases, it should normally be `4`.
 
