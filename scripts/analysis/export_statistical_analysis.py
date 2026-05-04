@@ -416,7 +416,7 @@ def factor_sensitivity_rows(
     return pd.DataFrame(rows)
 
 
-def top_factor_rows(factor_df: pd.DataFrame, top_n: int = 5) -> pd.DataFrame:
+def top_factor_rows(factor_df: pd.DataFrame, top_n: int = 2) -> pd.DataFrame:
     if factor_df.empty:
         return factor_df
 
@@ -486,7 +486,7 @@ def main() -> None:
         ["throughput_records_per_sec", "fetch_time_ms"],
         CONSUMER_FACTORS,
     )
-    factor_top = top_factor_rows(pd.concat([producer_factors, consumer_factors], ignore_index=True), top_n=5)
+    factor_top = top_factor_rows(pd.concat([producer_factors, consumer_factors], ignore_index=True), top_n=2)
 
     outputs = {
         "producer_bootstrap_ci": producer_ci,
