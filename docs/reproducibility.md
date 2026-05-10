@@ -22,6 +22,7 @@ The following files are local operational state and should remain outside Git:
 - Terraform state and variables, including `*.tfstate`, `*.tfstate.*`, `terraform.tfvars`, and `*.tfvars.json`
 - generated private keys, certificates, keystores, truststores, and TLS password files
 - local Python environments such as `.venv/`
+- local presentation working files under `presentation/`
 
 For reruns, regenerate these files from the committed Terraform modules, `terraform.tfvars.example`, JSON experiment definitions, and orchestration scripts. If generated secrets or Terraform state are accidentally committed, rotate the affected material and rewrite Git history before publishing.
 
@@ -65,6 +66,8 @@ results/final-processed/comprehensive-result-pack/
 ```
 
 This pack contains matched producer and consumer comparison CSV files, dissertation-ready tables and figures, and statistical outputs under `statistics/`. The statistical manifest records the generation settings used for bootstrap confidence intervals and factor-sensitivity summaries.
+
+The wider `results/` directory is deliberately tracked as dissertation evidence. Use `results/README.md` to distinguish final campaign evidence from smoke tests, historical sweeps, and intermediate validation outputs.
 
 ## Run Identification
 
