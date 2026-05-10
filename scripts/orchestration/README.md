@@ -245,16 +245,18 @@ CHECKPOINT_FILE=.orchestration/security-overhead-final-mtls-broker3.checkpoint \
 scripts/orchestration/run_factorial_plan.sh
 ```
 
-Current final producer campaign state, captured on 2026-05-03 after broker-3 mTLS had started:
+Final producer campaign completion state used for dissertation reporting:
 
-| Result set | Completed rows | Status |
-|---|---:|---|
-| `security-overhead-final-plaintext-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-tls-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-mtls-broker5` | `1296/1296` | Complete |
-| `security-overhead-final-plaintext-broker3` | `432/432` | Complete |
-| `security-overhead-final-tls-broker3` | `432/432` | Complete |
-| `security-overhead-final-mtls-broker3` | In progress | Active live phase |
+| Result set | Planned | Started | Completed | Failure attempts | Matched |
+|---|---:|---:|---:|---:|---:|
+| `security-overhead-final-plaintext-broker5` | 1,296 | 1,328 | 1,296 | 29 | 1,296 |
+| `security-overhead-final-tls-broker5` | 1,296 | 1,301 | 1,296 | 2 | 1,296 |
+| `security-overhead-final-mtls-broker5` | 1,296 | 1,299 | 1,296 | 0 | 1,296 |
+| `security-overhead-final-plaintext-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-tls-broker3` | 432 | 432 | 432 | 0 | 432 |
+| `security-overhead-final-mtls-broker3` | 432 | 432 | 432 | 0 | 432 |
+
+Started and failure-attempt counts are execution-history fields. They can exceed completed rows when interrupted or failed attempts were later rerun successfully. Matched rows are the authoritative comparative analysis set.
 
 Factorial resumability files:
 
