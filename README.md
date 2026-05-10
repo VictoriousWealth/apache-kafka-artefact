@@ -8,6 +8,36 @@ Public repository:
 https://github.com/VictoriousWealth/apache-kafka-artefact
 ```
 
+## Fast Reader Guide
+
+This repo is intentionally large because it includes the raw benchmark evidence, not only the scripts. If you are reviewing the project quickly, start here:
+
+| Need | Start here |
+| --- | --- |
+| What this project proves | This README, `docs/thesis-mapping.md`, and `docs/experiment-methodology.md` |
+| Final experiment scale | `docs/experiment-matrix.md` and `results/README.md` |
+| Reproducibility model | `docs/reproducibility.md` and `docs/script-index.md` |
+| AWS/Kafka architecture | `docs/architecture.md` and `infrastructure/terraform/README.md` |
+| Benchmark orchestration | `scripts/orchestration/README.md` |
+| Final exported outputs | `results/final-processed/`, plus final phase folders documented in `results/README.md` |
+
+For a lightweight local checkout focused on docs and scripts, use Git sparse checkout:
+
+```bash
+git clone --filter=blob:none --sparse https://github.com/VictoriousWealth/apache-kafka-artefact.git
+cd apache-kafka-artefact
+git sparse-checkout set --no-cone \
+  'README.md' \
+  'docs/**' \
+  'infrastructure/**' \
+  'scripts/**' \
+  'config/**' \
+  'deploy/**' \
+  'results/README.md'
+```
+
+For full reproducibility evidence, clone normally. The full checkout includes 100k+ raw result files under `results/`.
+
 The long-term artefact goal is:
 
 > A configurable Kafka benchmarking framework that supports controlled parameter sweeps and selected factorial experiments over security and deployment variables, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
@@ -50,6 +80,7 @@ Ignored local state includes:
 - Terraform state and local variable files, including `*.tfstate`, `*.tfstate.*`, `*.tfvars`, and `*.tfvars.json`.
 - Generated private keys, certificates, keystores, and truststores, including `*.pem`, `*.key`, `*.crt`, `*.jks`, `*.p12`, and `*.pfx`.
 - Local Python environments such as `.venv/`.
+- Local presentation working files under `presentation/`.
 
 Create local Terraform variables from `infrastructure/terraform/envs/dev/terraform.tfvars.example`, then keep the real `terraform.tfvars` outside version control. If a key, certificate, or generated Terraform state file is ever committed, treat the material as compromised, rotate it, and remove it from Git history before making the repository public.
 
@@ -195,6 +226,8 @@ The generated final campaign contains `5,184` runs after Kafka validity constrai
 The older plaintext-only requested matrix is retained in `docs/plaintext-factorial-config.md` and `config/factorials/plaintext-requested-full.json` as historical design context.
 
 ## Result Outputs
+
+The `results/` directory is deliberately tracked because it is part of the dissertation artefact evidence. It contains raw run logs, parsed metrics, telemetry, summaries, exports, smoke runs, intermediate validation runs, and final campaign outputs. Start with `results/README.md` before browsing individual run folders.
 
 Each benchmark run produces a directory containing:
 
