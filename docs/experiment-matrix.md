@@ -144,7 +144,7 @@ Started and failure-attempt counts are execution-history fields. They can exceed
 Example plaintext five-broker command:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=plaintext \
 BROKER_COUNT_FILTER=5 \
@@ -157,7 +157,7 @@ scripts/orchestration/run_factorial_plan.sh
 Example mTLS five-broker command:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=mtls \
 BROKER_COUNT_FILTER=5 \

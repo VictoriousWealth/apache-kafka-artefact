@@ -263,14 +263,14 @@ Prepare the three-broker phase:
 ```bash
 TARGET_BROKER_COUNT=3 \
 CONFIRM_DESTROY_EXTRA_BROKERS=true \
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/prepare_broker_count_phase.sh
 ```
 
 Run the three-broker factorial rows:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 BROKER_COUNT_FILTER=3 \
 LOCAL_RESULTS_DIR=results/factorial \
 RESULT_SET_NAME=plaintext-requested-full-broker3 \
@@ -282,14 +282,14 @@ Prepare the five-broker phase:
 
 ```bash
 TARGET_BROKER_COUNT=5 \
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/prepare_broker_count_phase.sh
 ```
 
 Run the five-broker factorial rows:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 BROKER_COUNT_FILTER=5 \
 LOCAL_RESULTS_DIR=results/factorial \
 RESULT_SET_NAME=plaintext-requested-full-broker5 \

@@ -12,6 +12,19 @@ https://github.com/VictoriousWealth/apache-kafka-artefact
 
 For dissertation submission, the submitted PDF should record either this repository URL plus a release tag or this repository URL plus the exact commit hash used to generate the final result pack.
 
+## Repository Boundary
+
+Reproducibility depends on committed source files, configuration templates, final result exports, and documentation. It does not depend on committing live deployment state.
+
+The following files are local operational state and should remain outside Git:
+
+- `.orchestration/` outputs, including generated plans, inventories, checkpoints, Terraform outputs, TLS assets, and SSH key paths
+- Terraform state and variables, including `*.tfstate`, `*.tfstate.*`, `terraform.tfvars`, and `*.tfvars.json`
+- generated private keys, certificates, keystores, truststores, and TLS password files
+- local Python environments such as `.venv/`
+
+For reruns, regenerate these files from the committed Terraform modules, `terraform.tfvars.example`, JSON experiment definitions, and orchestration scripts. If generated secrets or Terraform state are accidentally committed, rotate the affected material and rewrite Git history before publishing.
+
 ## Reproducibility Requirements
 
 Each run should capture:

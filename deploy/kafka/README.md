@@ -75,7 +75,7 @@ Generated assets include:
 - benchmark-client PKCS#12 keystore for mTLS client authentication
 - `.orchestration/tls/tls.env` containing the generated store password
 
-The `.orchestration` directory is ignored by git, so generated keys and truststores are not committed.
+The `.orchestration` directory is ignored by git, so generated keys and truststores are local-only. These assets are suitable for dissertation benchmarking and development testing, not production PKI. If any generated key, certificate, keystore, truststore, or password file is ever committed, treat it as compromised, rotate the material, and remove it from Git history before publishing the repository.
 
 ## Expected Bootstrap Order
 
@@ -118,3 +118,4 @@ The current scripts assume:
 - root or sudo execution during bootstrap.
 - generated TLS materials are development/test artefacts, not production PKI.
 - mTLS uses generated client keystores and `ssl.client.auth=required`; certificate rotation is not implemented yet.
+- generated TLS and mTLS materials are never committed to the repository.

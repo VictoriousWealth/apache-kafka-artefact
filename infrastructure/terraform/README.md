@@ -28,7 +28,20 @@ These defaults are intended to provide a moderate-cost starting point for framew
 
 ## Operational Note
 
-SSH access to the brokers and benchmark client is controlled by `allowed_ssh_cidrs` in `infrastructure/terraform/envs/dev/terraform.tfvars`. If the operator's public IP changes, EC2 instance health checks may remain green while all orchestration SSH commands time out. When that happens, update the allowlist to the current `/32` and, if immediate access is required, apply the matching change to the live security groups.
+SSH access to the brokers and benchmark client is controlled by `allowed_ssh_cidrs` in a local `infrastructure/terraform/envs/dev/terraform.tfvars` file. Create this file from `terraform.tfvars.example` and keep the real file out of Git, because it contains environment-specific access-control values.
+
+If the operator's public IP changes, EC2 instance health checks may remain green while all orchestration SSH commands time out. When that happens, update the local allowlist to the current `/32` and, if immediate access is required, apply the matching change to the live security groups.
+
+## State And Secret Handling
+
+Terraform state and local variables are generated operational state, not source files. Do not commit:
+
+- `terraform.tfstate` or `terraform.tfstate.*`
+- `.terraform.tfstate.lock.info`
+- `terraform.tfvars` or `*.tfvars.json`
+- generated SSH keys, TLS keys, certificates, keystores, or truststores
+
+If any of these files are committed accidentally, rotate the affected credentials or keys and remove the files from Git history before publishing the repository.
 
 ## Planned Topology
 
