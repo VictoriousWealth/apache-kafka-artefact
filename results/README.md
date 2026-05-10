@@ -43,12 +43,13 @@ Keeping raw logs makes the artefact more defensible:
 
 ## Security Hygiene
 
-The repository history was rewritten after a credential hygiene audit. After the local rewrite:
+The repository history was rewritten after a credential hygiene audit and the cleaned history was force-pushed. After the public rewrite:
 
-- `gitleaks detect --source . --no-banner --redact` completed with `no leaks found`.
+- `gitleaks detect --source . --no-banner --redact` completed with `no leaks found` on local history and a fresh public clone.
+- `trufflehog git` reported 0 verified and 0 unverified secrets on a fresh public clone.
 - Terraform state, local variable files, `.orchestration/`, `.venv/`, PEM keys, certificates, keystores, and truststores are ignored.
 
-Before making the repository public, force-push the cleaned history and rerun secret scanners such as `gitleaks` or `trufflehog` against a fresh clone. Do not add live infrastructure state, SSH keys, generated TLS assets, `.env` files, or Terraform state to this directory.
+Do not add live infrastructure state, SSH keys, generated TLS assets, `.env` files, or Terraform state to this directory.
 
 ## Lightweight Review Path
 
