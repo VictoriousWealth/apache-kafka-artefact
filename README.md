@@ -42,6 +42,15 @@ The long-term artefact goal is:
 
 > A configurable Kafka benchmarking framework that supports controlled parameter sweeps and selected factorial experiments over security and deployment variables, with primary emphasis on quantifying throughput and latency overhead under plaintext, TLS, and mTLS configurations.
 
+## Case Study
+
+This artefact is my strongest distributed-systems, infrastructure and benchmarking project. I built it for my dissertation to measure the performance overhead of zero-trust-inspired Kafka security, especially mTLS.
+
+- Problem: compare Kafka plaintext, TLS and mTLS performance in a controlled, repeatable way.
+- Build: Terraform provisions AWS EC2 Kafka infrastructure; deployment scripts configure plaintext, TLS or mTLS clusters; JSONL benchmark plans drive resumable producer and consumer experiments; telemetry and raw logs are parsed into dissertation-ready result packs.
+- Evidence: the final producer campaign generated 5,184 matched/completed valid runs after constraints, and the five-broker consumer validation slice completed 72/72 rows across plaintext, TLS and mTLS.
+- Main lesson: benchmarking is a systems problem. The important work is not only running Kafka, but controlling deployment state, keeping experiments comparable, recovering from failure and preserving enough raw evidence to defend the results.
+
 ## Current Status
 
 Implemented:
