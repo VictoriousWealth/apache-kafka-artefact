@@ -2,6 +2,12 @@
 
 These scripts connect Terraform provisioning and Kafka bootstrap into a simple remote deployment flow.
 
+## Local State And Secret Handling
+
+The orchestration layer writes live-run state under `.orchestration/`. This directory may contain Terraform outputs, inventories, checkpoint files, generated execution plans, TLS/mTLS material, passwords, and SSH key paths. It is intentionally ignored by Git and should be treated as local operational state rather than source code.
+
+Command examples use `SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem` to make the key location explicit. Use a local private key that is not tracked by Git. If a private key or generated TLS asset is accidentally committed, rotate it and remove it from Git history before publishing the repository.
+
 ## Current Flow
 
 1. `export_tf_outputs.sh`
@@ -76,7 +82,7 @@ Prepare a clean 3-broker phase:
 ```bash
 TARGET_BROKER_COUNT=3 \
 CONFIRM_DESTROY_EXTRA_BROKERS=true \
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/prepare_broker_count_phase.sh
 ```
 
@@ -84,11 +90,11 @@ Prepare a clean 5-broker phase:
 
 ```bash
 TARGET_BROKER_COUNT=5 \
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/prepare_broker_count_phase.sh
 ```
 
-The script updates `infrastructure/terraform/envs/dev/terraform.tfvars`, applies Terraform, rebuilds orchestration inventory, bootstraps Kafka with `RESET_KAFKA_STORAGE=true` by default, refreshes the benchmark client, and writes `.orchestration/broker-count-phase.env`.
+The script updates the local `infrastructure/terraform/envs/dev/terraform.tfvars`, applies Terraform, rebuilds orchestration inventory, bootstraps Kafka with `RESET_KAFKA_STORAGE=true` by default, refreshes the benchmark client, and writes `.orchestration/broker-count-phase.env`. The real `terraform.tfvars` file is ignored by Git; use `terraform.tfvars.example` as the committed template.
 
 Shrinking from 5 brokers to 3 brokers destroys the extra EC2 broker instances. The explicit `CONFIRM_DESTROY_EXTRA_BROKERS=true` flag is required for that transition.
 
@@ -105,14 +111,14 @@ scripts/orchestration/generate_factorial_plan.sh \
 This plan contains 5,184 rows across `plaintext`, `tls`, and `mtls`. The executor implements all three security modes. Use `SECURITY_MODE_FILTER=tls` only after deploying the TLS cluster:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_tls_cluster.sh
 ```
 
 Use `SECURITY_MODE_FILTER=mtls` only after deploying the mTLS cluster:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_mtls_cluster.sh
 ```
 
@@ -137,7 +143,7 @@ This plan contains 72 consumer runs across plaintext, TLS, and mTLS. It uses `be
 Dry-run the first five rows for the selected broker-count phase:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 DRY_RUN=true \
 BROKER_COUNT_FILTER=<3-or-5> \
 MAX_RUNS=5 \
@@ -149,7 +155,7 @@ scripts/orchestration/run_factorial_plan.sh
 Run one real smoke row:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 BROKER_COUNT_FILTER=5 \
 MAX_RUNS=1 \
 AGGREGATE_RESULTS=false \
@@ -163,7 +169,7 @@ scripts/orchestration/run_factorial_plan.sh
 Run the five-broker portion of the plaintext plan:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 BROKER_COUNT_FILTER=5 \
 LOCAL_RESULTS_DIR=results/factorial \
 RESULT_SET_NAME=plaintext-requested-full-broker5 \
@@ -174,7 +180,7 @@ scripts/orchestration/run_factorial_plan.sh
 Run or resume a bounded 100-run validation batch from the same five-broker result set:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 BROKER_COUNT_FILTER=5 \
 MAX_RUNS=41 \
 LOCAL_RESULTS_DIR=results/factorial \
@@ -190,7 +196,7 @@ The executor skips rows whose `broker_count` does not match the active cluster u
 The executor also supports `SECURITY_MODE_FILTER`, which is required for multi-mode plans:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=plaintext \
 BROKER_COUNT_FILTER=5 \
@@ -203,7 +209,7 @@ scripts/orchestration/run_factorial_plan.sh
 TLS five-broker smoke/phase command:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=tls \
 BROKER_COUNT_FILTER=5 \
@@ -216,7 +222,7 @@ scripts/orchestration/run_factorial_plan.sh
 mTLS five-broker smoke/phase command:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=mtls \
 BROKER_COUNT_FILTER=5 \
@@ -229,7 +235,7 @@ scripts/orchestration/run_factorial_plan.sh
 Broker-3 final phases use the same command shape with `BROKER_COUNT_FILTER=3` and the broker-3 result/checkpoint names, for example:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=mtls \
 BROKER_COUNT_FILTER=3 \
@@ -357,7 +363,7 @@ This is intended for a small consumer-side validation slice across `plaintext`, 
 Run a consumer mTLS broker-5 batch:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/consumer-security-slice-plan.jsonl \
 SECURITY_MODE_FILTER=mtls \
 BROKER_COUNT_FILTER=5 \
@@ -426,7 +432,7 @@ This result set contains 100 completed runs, 100 checkpoint entries, and no reco
 Run the three-broker portion after preparing the 3-broker phase:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 BROKER_COUNT_FILTER=3 \
 LOCAL_RESULTS_DIR=results/factorial \
 RESULT_SET_NAME=plaintext-requested-full-broker3 \

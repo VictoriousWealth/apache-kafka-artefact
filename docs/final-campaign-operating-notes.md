@@ -114,17 +114,17 @@ Do not run plaintext rows against a TLS or mTLS cluster. Do not run TLS/mTLS row
 Deployment commands:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_plaintext_cluster.sh
 ```
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_tls_cluster.sh
 ```
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_mtls_cluster.sh
 ```
 
@@ -138,7 +138,7 @@ Prepare five brokers:
 
 ```bash
 TARGET_BROKER_COUNT=5 \
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/prepare_broker_count_phase.sh
 ```
 
@@ -147,7 +147,7 @@ Prepare three brokers:
 ```bash
 TARGET_BROKER_COUNT=3 \
 CONFIRM_DESTROY_EXTRA_BROKERS=true \
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/prepare_broker_count_phase.sh
 ```
 
@@ -169,7 +169,7 @@ Avoid starting a full 1,296-run phase until runtime, cost, and failure behaviour
 Example mTLS broker-5 batch:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=mtls \
 BROKER_COUNT_FILTER=5 \
@@ -241,11 +241,13 @@ For five-broker phases, `telemetry_host_count` should normally be `6`. For three
 
 ## SSH Allowlist Note
 
-SSH access depends on `allowed_ssh_cidrs` in:
+SSH access depends on `allowed_ssh_cidrs` in the local Terraform variables file:
 
 ```text
 infrastructure/terraform/envs/dev/terraform.tfvars
 ```
+
+This file is ignored by Git and should be created from `terraform.tfvars.example` for each operator environment.
 
 If the local public IP changes, the EC2 instances may remain healthy while all SSH commands time out. This can stall orchestration, telemetry collection, and reruns even though AWS still reports the instances as `running` with healthy instance checks. If that happens:
 

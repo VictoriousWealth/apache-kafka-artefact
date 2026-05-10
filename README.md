@@ -40,6 +40,19 @@ Not implemented yet:
 - Certificate rotation workflow.
 - Full factorial consumer-side workload campaign. The implemented consumer path is a targeted validation slice.
 
+## Repository Hygiene And Local State
+
+The repository is intended to contain source code, configuration templates, documentation, and final analysis artefacts. Generated operational state is local-only and must not be committed.
+
+Ignored local state includes:
+
+- `.orchestration/`, including inventories, checkpoints, Terraform outputs, generated plans, TLS assets, and SSH keys.
+- Terraform state and local variable files, including `*.tfstate`, `*.tfstate.*`, `*.tfvars`, and `*.tfvars.json`.
+- Generated private keys, certificates, keystores, and truststores, including `*.pem`, `*.key`, `*.crt`, `*.jks`, `*.p12`, and `*.pfx`.
+- Local Python environments such as `.venv/`.
+
+Create local Terraform variables from `infrastructure/terraform/envs/dev/terraform.tfvars.example`, then keep the real `terraform.tfvars` outside version control. If a key, certificate, or generated Terraform state file is ever committed, treat the material as compromised, rotate it, and remove it from Git history before making the repository public.
+
 ## Research Goal
 
 The primary dissertation question is:
@@ -84,7 +97,7 @@ The scripts use public IPs for SSH access, but Kafka broker traffic uses private
 The top-level command is:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem scripts/run_plaintext_workflow.sh
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem scripts/run_plaintext_workflow.sh
 ```
 
 The workflow performs these stages:
@@ -98,6 +111,8 @@ The workflow performs these stages:
 
 The deployment part is checkpointed, so interrupted deployment steps can be resumed. Benchmark runs create new run directories.
 
+The `.orchestration/` paths above are generated local state. They are reproducibility aids for a live run, not permanent repository artefacts.
+
 For the reduced final security-overhead campaign, generate the plan with:
 
 ```bash
@@ -109,7 +124,7 @@ scripts/orchestration/generate_factorial_plan.sh \
 The current executor implements plaintext, TLS, and mTLS execution. A plaintext five-broker phase can be run with:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/security-overhead-final-plan.jsonl \
 SECURITY_MODE_FILTER=plaintext \
 BROKER_COUNT_FILTER=5 \
@@ -124,14 +139,14 @@ The factorial executor is resumable and records `started.jsonl`, `completed.json
 TLS deployment is handled by:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_tls_cluster.sh
 ```
 
 TLS and mTLS use broker data traffic on `9094`. mTLS deployment is handled by:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 scripts/orchestration/deploy_mtls_cluster.sh
 ```
 

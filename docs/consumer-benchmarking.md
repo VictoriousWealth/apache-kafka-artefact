@@ -102,7 +102,7 @@ scripts/orchestration/run_factorial_plan.sh
 Example mTLS broker-5 consumer batch:
 
 ```bash
-SSH_KEY_PATH=.orchestration/kafka-artefact-dev-key.pem \
+SSH_KEY_PATH=/path/to/kafka-artefact-dev-key.pem \
 FACTORIAL_PLAN_FILE=.orchestration/consumer-security-slice-plan.jsonl \
 SECURITY_MODE_FILTER=mtls \
 BROKER_COUNT_FILTER=5 \

@@ -37,14 +37,17 @@ This layer manages the files and scripts required for TLS and mTLS.
 
 Responsibilities:
 
-- Generate or store broker and client certificates
+- Generate broker and client certificates as local operational state
 - Support trusted CA material
 - Separate server-authenticated TLS from mutual-authenticated mTLS
+- Keep generated keys, certificates, keystores, and truststores out of Git
 
 Location:
 
 - `deploy/kafka/tls/`
 - `.orchestration/`
+
+The `.orchestration/` location is local-only and ignored by Git. It may contain sensitive generated material during a live run, so it should be regenerated rather than committed.
 
 ### 3. Workload Generation Layer
 

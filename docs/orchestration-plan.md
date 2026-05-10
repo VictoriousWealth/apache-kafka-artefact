@@ -33,10 +33,12 @@ The initial orchestration scripts are for development only. They are intentional
 
 ## Expected Inputs
 
-- Terraform state or `terraform output -json`
-- SSH private key path
+- Terraform outputs from a local Terraform working directory
+- SSH private key path supplied through `SSH_KEY_PATH`
 - SSH username
 - Kafka version assumptions
+
+Terraform state, local variables, SSH private keys, and generated orchestration outputs are local operational state. They should be regenerated for each environment and kept out of Git.
 
 ## Expected Outputs
 
@@ -48,7 +50,7 @@ The initial orchestration scripts are for development only. They are intentional
 
 After the plaintext deployment works, the orchestration layer will extend to:
 
-- TLS and mTLS certificate distribution
+- TLS and mTLS certificate distribution from ignored local generated assets
 - client properties generation
 - benchmark runner invocation
 - result retrieval and storage
